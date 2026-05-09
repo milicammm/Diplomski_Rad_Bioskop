@@ -1,0 +1,257 @@
+
+    <section class="tickets-page">
+      <header class="tickets-head">
+        <div>
+          <p class="tickets-head__eyebrow">Booking flow</p>
+          <h1>Choose a screening and reserve seats</h1>
+          <p>Pick a movie, select a screening, choose seats and continue to checkout.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="refresh()" [disabled]="loadingMovies() || loadingScreenings() || loadingSeats()">
+          Refresh data
+        </button>
+      </header>
+
+      <section class="tickets-panel">
+        <mat-form-field appearance="outline">
+          <mat-label>Movie</mat-label>
+          <mat-select [value]="selectedMovieId()" (selectionChange)="onMovieChange($event)">
+            @for (movie of movies(); track movie.id) {
+              <mat-option [value]="movie.id">{{ movie.title }} ({{ movie.genre }})</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="tickets-panel__legend">
+          <span><mat-icon>event</mat-icon> screening</span>
+          <span><mat-icon>airline_seat_recline_normal</mat-icon> seat</span>
+          <span><mat-icon>payments</mat-icon> {{ estimatedTotal() | number: '1.2-2' }} USD</span>
+        </div>
+      </section>
+
+      @if (loadingMovies()) {
+        <section class="state-card">
+          <mat-spinner diameter="34" />
+          <p>Loading movies...</p>
+        </section>
+      } @else if (movies().length === 0) {
+        <section class="state-card">
+          <p>No movies available at the moment.</p>
+        </section>
+      }
+
+      <section class="screenings">
+        <h2>Available screenings</h2>
+
+        @if (loadingScreenings()) {
+          <section class="state-card">
+            <mat-spinner diameter="34" />
+            <p>Loading screenings...</p>
+          </section>
+        } @else if (screenings().length === 0) {
+          <section class="state-card">
+            <p>No screenings available for the selected movie.</p>
+          </section>
+        } @else {
+          <div class="screenings-grid">
+            @for (screening of screenings(); track screening.id) {
+              <mat-card
+                appearance="outlined"
+                class="screening-card"
+                [class.screening-card--active]="selectedScreeningId() === screening.id"
+              >
+                <div>
+                  <p class="screening-card__time">{{ formatScreeningDateTime(screening) }}</p>
+                  <h3>{{ screening.hallName }}</h3>
+                  <p class="screening-card__meta">
+                    {{ screening.availableSeats }}/{{ screening.totalSeats }} seats
+                  </p>
+                </div>
+                <div class="screening-card__actions">
+                  <span>{{ screening.price | number: '1.2-2' }} USD</span>
+                  <button
+                    mat-raised-button
+                    color="primary"
+                    type="button"
+                    (click)="selectScreening(screening)"
+                  >
+                    Select
+                  </button>
+                </div>
+              </mat-card>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="seats">
+        <div class="seats-head">
+          <div>
+            <h2>Seats in selected hall</h2>
+            <p>Filter by seat type or pick from suggested seats.</p>
+          </div>
+
+          <div class="seat-type-filters">
+            @for (filter of seatTypeFilters; track filter.value) {
+              <button
+                mat-stroked-button
+                type="button"
+                class="filter-button"
+                [class.filter-button--active]="seatTypeFilter() === filter.value"
+                (click)="seatTypeFilter.set(filter.value)"
+              >
+                {{ filter.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (!selectedScreeningId()) {
+          <section class="state-card">
+            <p>Select screening first to load seats.</p>
+          </section>
+        } @else if (loadingSeats()) {
+          <section class="state-card">
+            <mat-spinner diameter="34" />
+            <p>Loading available seats...</p>
+          </section>
+        } @else if (seats().length === 0) {
+          <section class="state-card">
+            <p>No seats are available for the selected screening.</p>
+          </section>
+        } @else {
+          <section class="recommendation-card">
+            <div>
+              <p class="recommendation-card__eyebrow">{{ recommendationTitle() }}</p>
+              <p class="recommendation-card__text">
+                {{ recommendationSubtitle() }}
+              </p>
+            </div>
+
+            <div class="recommendation-list">
+              @for (seat of recommendedSeats(); track seat.id) {
+                <button
+                  type="button"
+                  class="seat-chip seat-chip--recommended"
+                  [class.seat-chip--selected]="isSeatSelected(seat.id)"
+                  [class.seat-chip--vip]="seat.type === 'VIP'"
+                  [class.seat-chip--reserved]="seat.reserved"
+                  [disabled]="seat.reserved"
+                  (click)="toggleSeat(seat.id)"
+                >
+                  {{ seatLabel(seat) }}
+                </button>
+              }
+            </div>
+          </section>
+
+          <div class="seat-rows">
+            @for (row of groupedSeats(); track row.rowKey) {
+              <article class="seat-row">
+                <div class="seat-row__label">
+                  <strong>Row {{ row.rowLabel }}</strong>
+                  <span>{{ row.seats.length }} seats</span>
+                </div>
+
+                <div class="seat-row__grid">
+                  @for (seat of row.seats; track seat.id) {
+                    <button
+                      type="button"
+                      class="seat-chip"
+                      [class.seat-chip--selected]="isSeatSelected(seat.id)"
+                      [class.seat-chip--vip]="seat.type === 'VIP'"
+                      [class.seat-chip--reserved]="seat.reserved"
+                      [class.seat-chip--recommended]="recommendedSeatIds().has(seat.id)"
+                      [disabled]="seat.reserved"
+                      (click)="toggleSeat(seat.id)"
+                    >
+                      {{ seat.seatNumber }}
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <footer class="cta-row">
+        <div>
+          <p class="cta-row__label">Selected seats</p>
+          <strong>{{ selectedSeatIds().length }}</strong>
+        </div>
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          [disabled]="!canContinueToCheckout()"
+          (click)="goToCheckout()"
+        >
+          Continue to checkout
+        </button>
+      </footer>
+
+      <section class="history">
+        <div class="history-head">
+          <h2>Your recent bookings</h2>
+          <div class="history-filters">
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select [value]="historyStatusFilter()" (selectionChange)="historyStatusFilter.set($event.value)">
+                @for (status of historyStatuses; track status.value) {
+                  <mat-option [value]="status.value">{{ status.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>From date</mat-label>
+              <input matInput type="date" [value]="historyFromDate()" (change)="onHistoryFromDateChange($event)" />
+            </mat-form-field>
+
+            <button mat-stroked-button type="button" (click)="clearHistoryFilters()">Clear</button>
+          </div>
+        </div>
+
+        @if (loadingOrders()) {
+          <section class="state-card">
+            <mat-spinner diameter="30" />
+            <p>Loading your booking history...</p>
+          </section>
+        } @else if (orders().length === 0) {
+          <section class="state-card">
+            <p>No bookings yet. Confirm a reservation and it will appear here.</p>
+          </section>
+        } @else {
+          <div class="history-list">
+            @for (order of filteredOrders(); track order.id) {
+              <article class="history-row">
+                <div>
+                  <strong>#{{ order.id }}</strong>
+                  <p>{{ formatOrderDate(order.orderDate) }}</p>
+                </div>
+                <div>
+                  <strong>{{ order.status }}</strong>
+                  <p>{{ order.orderItems.length }} seats</p>
+                </div>
+                <div>
+                  <strong>{{ order.totalPrice | number: '1.2-2' }} USD</strong>
+                  <p>{{ order.username }}</p>
+                </div>
+              </article>
+            }
+
+            @if (filteredOrders().length === 0) {
+              <section class="state-card">
+                <p>No reservations match the current filters.</p>
+              </section>
+            }
+          </div>
+        }
+      </section>
+
+      @if (errorMessage()) {
+        <section class="state-card state-card--error">
+            <p>{{ errorMessage() }}</p>
+        </section>
+      }
+    </section>

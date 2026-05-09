@@ -1,0 +1,56 @@
+
+    <section class="state-page">
+      <mat-card appearance="outlined" class="state-card">
+        @if (isLoading()) {
+          <p class="state-card__eyebrow">Payment status</p>
+          <h1>Checking payment status…</h1>
+          <p>Loading information from the server to confirm the payment.</p>
+        } @else if (errorMessage()) {
+          <p class="state-card__eyebrow state-card__eyebrow--error">Payment status</p>
+          <h1>Unable to load payment status</h1>
+          <p>{{ errorMessage() }}</p>
+        } @else {
+          <p class="state-card__eyebrow" [class.state-card__eyebrow--ok]="order()?.status === 'CONFIRMED'">
+            Payment {{ order()?.status || 'UNKNOWN' }}
+          </p>
+          <h1>
+            @if (order()?.status === 'CONFIRMED') {
+              Payment confirmed
+            } @else {
+              Payment received — awaiting confirmation
+            }
+          </h1>
+          <p>
+            @if (order()?.status === 'CONFIRMED') {
+              The payment was processed successfully and your order is confirmed.
+            } @else {
+              Your card payment completed, but our server has not yet received the final confirmation. Please refresh this page in a few moments.
+            }
+          </p>
+
+          @if (order(); as currentOrder) {
+            <div class="details-grid">
+              <div>
+                <span>Status</span>
+                <strong>{{ currentOrder.status }}</strong>
+              </div>
+              <div>
+                <span>Total</span>
+                <strong>{{ currentOrder.totalPrice | number: '1.2-2' }} USD</strong>
+              </div>
+              <div>
+                <span>Payment</span>
+                <strong>{{ currentOrder.paymentIntentId ? 'Processed' : 'Pending' }}</strong>
+              </div>
+            </div>
+          }
+
+          <div class="state-card__actions">
+            <a mat-raised-button color="primary" routerLink="/tickets">Back to tickets</a>
+            <a mat-stroked-button routerLink="/movies">Back to movies</a>
+          </div>
+        }
+      </mat-card>
+    </section>
+
+ 

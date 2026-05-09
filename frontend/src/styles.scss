@@ -1,0 +1,205 @@
+@use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+$cineticket-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$cyan-palette,
+    tertiary: mat.$orange-palette,
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+html {
+  @include mat.all-component-themes($cineticket-theme);
+}
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  color: #172520;
+  background: linear-gradient(160deg, #f8f6ef 0%, #edf6f2 48%, #f4f7ff 100%);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.dark-field {
+  width: 100%;
+}
+
+.dark-field .mat-mdc-text-field-wrapper {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-radius: 18px !important;
+}
+
+.dark-field .mdc-text-field,
+.dark-field .mat-mdc-form-field-flex,
+.dark-field .mat-mdc-form-field-infix {
+  background: transparent !important;
+}
+
+.dark-field .mat-mdc-form-field-flex {
+  min-height: 56px;
+  align-items: center;
+}
+
+.dark-field .mat-mdc-form-field-infix {
+  min-height: 56px;
+}
+
+.dark-field input.mat-mdc-input-element,
+.dark-field textarea.mat-mdc-input-element {
+  color: #f8fafc !important;
+  caret-color: #c4b5fd !important;
+  background-color: #0b1226 !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  box-shadow: 0 0 0 1000px #0b1226 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #0b1226 inset !important;
+  border-radius: 10px !important;
+}
+
+.dark-field input.mat-mdc-input-element::placeholder,
+.dark-field textarea.mat-mdc-input-element::placeholder {
+  color: rgba(226, 232, 240, 0.45) !important;
+}
+
+.dark-field .mdc-floating-label {
+  color: rgba(226, 232, 240, 0.75) !important;
+}
+
+.dark-field .mat-icon,
+.dark-field .mat-mdc-icon-button {
+  color: rgba(226, 232, 240, 0.72) !important;
+}
+
+.dark-field .mdc-notched-outline__leading,
+.dark-field .mdc-notched-outline__notch,
+.dark-field .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark-field:hover .mdc-notched-outline__leading,
+.dark-field:hover .mdc-notched-outline__notch,
+.dark-field:hover .mdc-notched-outline__trailing {
+  border-color: rgba(139, 92, 246, 0.35) !important;
+}
+
+.dark-field.mat-focused .mdc-notched-outline__leading,
+.dark-field.mat-focused .mdc-notched-outline__notch,
+.dark-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: #8b5cf6 !important;
+}
+
+.dark-field.mat-focused .mdc-floating-label {
+  color: #c4b5fd !important;
+}
+
+.dark-field .mat-mdc-form-field-error {
+  color: #fda4af !important;
+}
+
+
+.dark-field input.mat-mdc-input-element:-webkit-autofill,
+.dark-field input.mat-mdc-input-element:-webkit-autofill:hover,
+.dark-field input.mat-mdc-input-element:-webkit-autofill:focus,
+.dark-field input.mat-mdc-input-element:-webkit-autofill:active {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0 1000px #0b1226 inset !important;
+  box-shadow: 0 0 0 1000px #0b1226 inset !important;
+  transition: background-color 999999s ease-in-out 0s;
+  border-radius: 10px !important;
+  caret-color: #c4b5fd !important;
+}
+
+
+.auth-card input,
+.auth-card input.mat-mdc-input-element {
+  background-color: #0b1226 !important;
+  -webkit-box-shadow: 0 0 0 1000px #0b1226 inset !important;
+  box-shadow: 0 0 0 1000px #0b1226 inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+}
+.edit-profile-backdrop {
+  background: rgba(2, 6, 23, 0.82) !important;
+  backdrop-filter: blur(10px);
+}
+
+.edit-profile-dialog-panel {
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-color: transparent !important;
+    padding: 0 !important;
+  }
+
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    background:
+      radial-gradient(circle at top right, rgba(139, 92, 246, 0.22), transparent 35%),
+      radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.18), transparent 35%),
+      linear-gradient(160deg, #0b1226 0%, #0f172a 45%, #111827 100%) !important;
+
+    color: #f8fafc !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(148, 163, 184, 0.18) !important;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75) !important;
+    overflow: hidden !important;
+  }
+  .edit-profile-dialog-panel {
+
+  .mat-mdc-dialog-title {
+    margin: 0 !important;
+    padding: 2rem 2rem 1.4rem 2rem !important;
+
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1;
+
+    color: #f8fafc !important;
+
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+    background:
+      linear-gradient(
+        90deg,
+        rgba(59, 130, 246, 0.08),
+        rgba(139, 92, 246, 0.08)
+      );
+  }
+
+  .mat-mdc-dialog-content {
+    padding: 1.8rem 2rem 1rem 2rem !important;
+  }
+
+  .mat-mdc-dialog-actions {
+    padding: 1.2rem 2rem 2rem 2rem !important;
+  }
+}
+.edit-profile-dialog-panel .close-btn {
+  top: 1.4rem;
+  right: 1.4rem;
+}
+
+}

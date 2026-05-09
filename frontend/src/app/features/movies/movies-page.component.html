@@ -1,0 +1,147 @@
+
+    <section class="page-head">
+      <div>
+        <p class="page-head__eyebrow">Now showing</p>
+        <h1>Browse movies</h1>
+        <p class="page-head__subtitle">Dark, minimal and responsive movie catalog with quick booking action.</p>
+      </div>
+      <div class="page-head__stats">
+        <div>
+          <strong>{{ totalMovies() }}</strong>
+          <span>movies</span>
+        </div>
+        <div>
+          <strong>{{ pageInfo().totalPages }}</strong>
+          <span>pages</span>
+        </div>
+        <div>
+          <strong>4.8</strong>
+          <span>avg rating</span>
+        </div>
+        <button mat-icon-button (click)="refreshMovies()" title="Refresh movies" class="refresh-btn">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </section>
+
+    <section class="filters glass-panel" [formGroup]="filtersForm">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="keyword" placeholder="Search titles, genres, directors" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Genre</mat-label>
+        <mat-select formControlName="genre" panelClass="movies-filter-panel">
+          <mat-option value="">All</mat-option>
+          @for (genre of availableGenres(); track genre) {
+            <mat-option [value]="genre">{{ genre }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select formControlName="sortBy" panelClass="movies-filter-panel">
+          <mat-option value="createdAt">Newest</mat-option>
+          <mat-option value="releaseDate">Release date</mat-option>
+          <mat-option value="title">Title</mat-option>
+          <mat-option value="duration">Duration</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Direction</mat-label>
+        <mat-select formControlName="direction" panelClass="movies-filter-panel">
+          <mat-option value="DESC">Descending</mat-option>
+          <mat-option value="ASC">Ascending</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button type="button" class="filters__reset" (click)="clearFilters()">Reset</button>
+      <button mat-raised-button color="primary" type="button" class="filters__apply" (click)="applyFilters()">Apply filters</button>
+    </section>
+
+    @if (recommendedMovies().length > 0) {
+      <section class="recommendations glass-panel">
+        <div class="recommendations__head">
+          <p class="recommendations__eyebrow">Personalized picks</p>
+          <h2>Recommended for you</h2>
+          <p>{{ recommendationHint() }}</p>
+        </div>
+
+        <div class="recommendations__grid">
+          @for (movie of recommendedMovies(); track movie.id) {
+            <button class="recommendation-item" type="button" (click)="fillSuggestion(movie)">
+              <span class="recommendation-item__title">{{ movie.title }}</span>
+              <span class="recommendation-item__meta">{{ movie.genre }} • {{ movie.language || 'Unknown' }}</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="movie-grid">
+      @if (loading()) {
+        <div class="loading-state glass-panel">Loading movies...</div>
+      } @else {
+        @for (movie of pagedMovies(); track movie.id) {
+          <mat-card appearance="outlined" class="movie-card glass-panel">
+            <div class="movie-card__poster">
+              <img [src]="posterUrl(movie)" [alt]="movie.title + ' poster'" />
+              <div class="movie-card__poster-overlay">
+                <span class="movie-card__badge">{{ movieBadge(movie) }}</span>
+                <span class="movie-card__rating-pill">
+                  <mat-icon>star</mat-icon>
+                  {{ ratingFor(movie) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="movie-card__content">
+              <div class="movie-card__tags">
+                @for (tag of genreTags(movie); track tag) {
+                  <span>{{ tag }}</span>
+                }
+              </div>
+              <h2>{{ movie.title }}</h2>
+              <p class="movie-card__meta">{{ movie.director || 'Cinema release' }} • {{ movie.duration }} min • {{ movie.language || 'Unknown' }}</p>
+              <p class="movie-card__description">{{ movie.description || 'No description available.' }}</p>
+
+              <div class="movie-card__stats">
+                <span class="movie-card__stat">
+                  <mat-icon>local_movies</mat-icon>
+                  {{ movie.soldTickets || 0 }} sold
+                </span>
+              </div>
+
+              <div class="movie-card__actions">
+                <a mat-raised-button color="primary" [routerLink]="['/tickets']" [queryParams]="{ movieId: movie.id }">Book Now</a>
+              </div>
+            </div>
+          </mat-card>
+        }
+
+        @if (!pagedMovies().length) {
+          <div class="loading-state glass-panel">No movies found for current filters.</div>
+        }
+      }
+    </section>
+
+    <section class="pager glass-panel">
+      <div class="pager__summary">
+        <p class="pager__eyebrow"></p>
+        <span>{{ pageSummary() }}</span>
+      </div>
+
+      <mat-paginator
+        class="pager__paginator"
+        [length]="filteredMovies().length"
+        [pageIndex]="pageInfo().page"
+        [pageSize]="pageInfo().size"
+        [pageSizeOptions]="[8, 12, 16]"
+        (page)="handlePage($event)"
+        aria-label="Movies pagination"
+      />
+    </section>

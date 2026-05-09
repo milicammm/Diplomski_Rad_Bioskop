@@ -1,0 +1,46 @@
+
+    .dialog-container {
+      width: 500px;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+    }
+
+    .dialog-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .dark-field {
+      width: 100%;
+
+      ::ng-deep {
+        .mdc-text-field--filled {
+          background-color: rgba(255, 255, 255, 0.04);
+        }
+      }
+    }
+
+    .password-toggle {
+      color: inherit;
+    }
+
+    .dialog-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }

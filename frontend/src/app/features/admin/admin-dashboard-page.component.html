@@ -1,0 +1,578 @@
+
+    <section class="admin-page">
+      <header class="admin-head">
+        <div>
+          <p class="admin-head__eyebrow">Operations</p>
+          <h1>Admin dashboard</h1>
+          <p>Manage movies, halls, seats, screenings and orders from one place.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="loadDashboard()" [disabled]="loadingData()">
+          Refresh all
+        </button>
+      </header>
+
+      @if (loadingData()) {
+        <section class="state-card">
+          <mat-spinner diameter="36" />
+          <p>Loading admin data...</p>
+        </section>
+      } @else {
+        @if (errorMessage()) {
+          <section class="state-card state-card--error">
+            <p>{{ errorMessage() }}</p>
+          </section>
+        }
+
+        <section class="stats-grid">
+          <mat-card appearance="outlined" class="stat-card">
+            <p>Movies</p>
+            <strong>{{ movies().length }}</strong>
+            <small>catalog entries</small>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="stat-card">
+            <p>Halls</p>
+            <strong>{{ halls().length }}</strong>
+            <small>{{ totalHallCapacity() }} seats capacity</small>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="stat-card">
+            <p>Screenings</p>
+            <strong>{{ screenings().length }}</strong>
+            <small>{{ activeScreenings() }} active</small>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="stat-card">
+            <p>Orders</p>
+            <strong>{{ orders().length }}</strong>
+            <small>{{ pendingOrders() }} pending</small>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="stat-card">
+            <p>Payments</p>
+            <strong>{{ paymentTransactions().length }}</strong>
+            <small>{{ successfulPaymentsCount() }} successful</small>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="stat-card">
+            <p>Users</p>
+            <strong>{{ users().length }}</strong>
+            <small>registered accounts</small>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Catalog</p>
+                <h2>{{ editingMovieId() ? 'Edit movie' : 'Add movie' }}</h2>
+              </div>
+              @if (editingMovieId()) {
+                <button mat-stroked-button type="button" (click)="resetMovieForm()">Cancel edit</button>
+              }
+            </div>
+
+            <form class="form-grid" [formGroup]="movieForm" (ngSubmit)="submitMovie()" novalidate>
+              <mat-form-field appearance="outline">
+                <mat-label>Title</mat-label>
+                <input matInput formControlName="title" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Genre</mat-label>
+                <input matInput formControlName="genre" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Duration</mat-label>
+                <input matInput type="number" formControlName="duration" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Release date</mat-label>
+                <input matInput type="date" formControlName="releaseDate" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>Description</mat-label>
+                <textarea matInput rows="3" formControlName="description"></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>Poster URL</mat-label>
+                <input matInput formControlName="posterUrl" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>Trailer URL</mat-label>
+                <input matInput formControlName="trailerUrl" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Director</mat-label>
+                <input matInput formControlName="director" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Language</mat-label>
+                <input matInput formControlName="language" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>Cast</mat-label>
+                <input matInput formControlName="cast" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="active">
+                  <mat-option [value]="true">Active</mat-option>
+                  <mat-option [value]="false">Inactive</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="form-actions span-2">
+                <button mat-raised-button color="primary" type="submit" [disabled]="movieSaving()">
+                  {{ movieSaving() ? 'Saving...' : editingMovieId() ? 'Update movie' : 'Create movie' }}
+                </button>
+                <button mat-stroked-button type="button" (click)="resetMovieForm()">Reset</button>
+              </div>
+            </form>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Movies</p>
+                <h2>Current catalog</h2>
+              </div>
+            </div>
+
+            <div class="list list--scrollable">
+              @for (movie of movies(); track movie.id) {
+                <article class="list-row">
+                  <div>
+                    <strong>{{ movie.title }}</strong>
+                    <p>{{ movie.genre }} · {{ movie.duration }} min · {{ movie.releaseDate }}</p>
+                  </div>
+                  <div class="list-actions">
+                    <button mat-stroked-button type="button" (click)="editMovie(movie)">Edit</button>
+                    <button mat-stroked-button type="button" (click)="removeMovie(movie.id)">Delete</button>
+                  </div>
+                </article>
+              }
+            </div>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Facilities</p>
+                <h2>{{ editingHallId() ? 'Edit hall' : 'Add hall' }}</h2>
+              </div>
+              @if (editingHallId()) {
+                <button mat-stroked-button type="button" (click)="resetHallForm()">Cancel edit</button>
+              }
+            </div>
+
+            <form class="form-grid" [formGroup]="hallForm" (ngSubmit)="submitHall()" novalidate>
+              <mat-form-field appearance="outline">
+                <mat-label>Name</mat-label>
+                <input matInput formControlName="name" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Capacity</mat-label>
+                <input matInput type="number" formControlName="capacity" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>Description</mat-label>
+                <input matInput formControlName="description" />
+              </mat-form-field>
+
+              <div class="form-actions span-2">
+                <button mat-raised-button color="primary" type="submit" [disabled]="hallSaving()">
+                  {{ hallSaving() ? 'Saving...' : editingHallId() ? 'Update hall' : 'Create hall' }}
+                </button>
+                <button mat-stroked-button type="button" (click)="resetHallForm()">Reset</button>
+              </div>
+            </form>
+
+            @if (halls().length === 0) {
+              <p class="helper-text">Nema nijedne sale. Prvo dodaj salu da bi se pojavila u padajucim listama.</p>
+            }
+          </mat-card>
+
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Halls</p>
+                <h2>Available halls</h2>
+              </div>
+            </div>
+
+            <div class="list list--scrollable">
+              @for (hall of halls(); track hall.id) {
+                <article class="list-row">
+                  <div>
+                    <strong>{{ hall.name }}</strong>
+                    <p>{{ hall.capacity }} seats · {{ hall.description || 'No description' }}</p>
+                  </div>
+                  <div class="list-actions">
+                    <button mat-stroked-button type="button" (click)="editHall(hall)">Edit</button>
+                    <button mat-stroked-button type="button" (click)="removeHall(hall.id)">Delete</button>
+                  </div>
+                </article>
+              }
+            </div>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Seats</p>
+                <h2>Add seat</h2>
+              </div>
+            </div>
+
+            <form class="form-grid" [formGroup]="seatForm" (ngSubmit)="submitSeat()" novalidate>
+              <mat-form-field appearance="outline">
+                <mat-label>Hall</mat-label>
+                <mat-select formControlName="hallId">
+                  @if (halls().length === 0) {
+                    <mat-option [value]="0" disabled>Nema dostupnih sala</mat-option>
+                  }
+                  @for (hall of halls(); track hall.id) {
+                    <mat-option [value]="hall.id">{{ hall.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Row</mat-label>
+                <input matInput formControlName="rowNumber" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Seat number</mat-label>
+                <input matInput type="number" formControlName="seatNumber" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Type</mat-label>
+                <mat-select formControlName="type">
+                  <mat-option value="REGULAR">Regular</mat-option>
+                  <mat-option value="VIP">VIP</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="form-actions span-2">
+                <button mat-raised-button color="primary" type="submit" [disabled]="seatSaving() || halls().length === 0">
+                  {{ seatSaving() ? 'Saving...' : 'Create seat' }}
+                </button>
+                <button mat-stroked-button type="button" (click)="resetSeatForm()">Reset</button>
+              </div>
+            </form>
+
+            @if (halls().length === 0) {
+              <p class="helper-text">Za dodavanje sedista prvo kreiraj salu.</p>
+            }
+          </mat-card>
+
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Seats</p>
+                <h2>Current seats</h2>
+              </div>
+              <mat-form-field appearance="outline" class="compact-select">
+                <mat-label>Filter hall</mat-label>
+                <mat-select [value]="seatHallFilter()" (selectionChange)="seatHallFilter.set($event.value)">
+                  <mat-option [value]="null">All halls</mat-option>
+                  @for (hall of halls(); track hall.id) {
+                    <mat-option [value]="hall.id">{{ hall.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="list list--scrollable">
+              @for (seat of filteredSeats(); track seat.id) {
+                <article class="list-row">
+                  <div>
+                    <strong>{{ seat.hallName }}</strong>
+                    <p>{{ seat.rowNumber }}-{{ seat.seatNumber }} · {{ seat.type }}</p>
+                  </div>
+                  <div class="list-actions">
+                    <button mat-stroked-button type="button" (click)="removeSeat(seat.id)">Delete</button>
+                  </div>
+                </article>
+              }
+            </div>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Screenings</p>
+                <h2>{{ editingScreeningId() ? 'Edit screening' : 'Add screening' }}</h2>
+              </div>
+              @if (editingScreeningId()) {
+                <button mat-stroked-button type="button" (click)="resetScreeningForm()">Cancel edit</button>
+              }
+            </div>
+
+            <form class="form-grid" [formGroup]="screeningForm" (ngSubmit)="submitScreening()" novalidate>
+              <mat-form-field appearance="outline">
+                <mat-label>Movie</mat-label>
+                <mat-select formControlName="movieId">
+                  @if (movies().length === 0) {
+                    <mat-option [value]="0" disabled>Nema dostupnih filmova</mat-option>
+                  }
+                  @for (movie of movies(); track movie.id) {
+                    <mat-option [value]="movie.id">{{ movie.title }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Hall</mat-label>
+                <mat-select formControlName="hallId">
+                  @if (halls().length === 0) {
+                    <mat-option [value]="0" disabled>Nema dostupnih sala</mat-option>
+                  }
+                  @for (hall of halls(); track hall.id) {
+                    <mat-option [value]="hall.id">{{ hall.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Date</mat-label>
+                <input matInput type="date" formControlName="screeningDate" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Time</mat-label>
+                <input matInput type="time" formControlName="screeningTime" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Price</mat-label>
+                <input matInput type="number" formControlName="price" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="active">
+                  <mat-option [value]="true">Active</mat-option>
+                  <mat-option [value]="false">Inactive</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="form-actions span-2">
+                <button mat-raised-button color="primary" type="submit" [disabled]="screeningSaving() || halls().length === 0 || movies().length === 0">
+                  {{ screeningSaving() ? 'Saving...' : editingScreeningId() ? 'Update screening' : 'Create screening' }}
+                </button>
+                <button mat-stroked-button type="button" (click)="resetScreeningForm()">Reset</button>
+              </div>
+            </form>
+
+            @if (halls().length === 0 || movies().length === 0) {
+              <p class="helper-text">Za projekciju su obavezni i film i sala.</p>
+            }
+          </mat-card>
+
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Screenings</p>
+                <h2>Current screenings</h2>
+              </div>
+            </div>
+
+            <div class="list list--scrollable">
+              @for (screening of screenings(); track screening.id) {
+                <article class="list-row">
+                  <div>
+                    <strong>{{ screening.movieTitle }}</strong>
+                    <p>{{ screening.hallName }} · {{ screening.screeningDate }} {{ screening.screeningTime }}</p>
+                  </div>
+                  <div class="list-actions">
+                    <button mat-stroked-button type="button" (click)="editScreening(screening)">Edit</button>
+                    <button mat-stroked-button type="button" (click)="removeScreening(screening.id)">Delete</button>
+                  </div>
+                </article>
+              }
+            </div>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel panel--wide">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Orders</p>
+                <h2>Latest orders</h2>
+              </div>
+            </div>
+
+            <div class="list">
+              @for (order of latestOrders(); track order.id) {
+                <article class="list-row">
+                  <div>
+                    <strong>#{{ order.id }} · {{ order.username }}</strong>
+                    <p>{{ order.orderItems.length }} seats · {{ formatOrderDate(order.orderDate) }}</p>
+                  </div>
+                  <div class="list-row__side">
+                    <strong>{{ order.totalPrice | number: '1.2-2' }} USD</strong>
+                    <p>{{ order.status }}</p>
+                    <div class="status-actions">
+                      <button mat-stroked-button type="button" (click)="setOrderStatus(order.id, 'CONFIRMED')">Confirm</button>
+                      <button mat-stroked-button type="button" (click)="setOrderStatus(order.id, 'CANCELLED')">Cancel</button>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel panel--wide">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Users</p>
+                <h2>{{ editingUserId() ? 'Edit user' : 'Add new user' }}</h2>
+              </div>
+              @if (editingUserId()) {
+                <button mat-stroked-button type="button" (click)="resetUserForm()">Cancel edit</button>
+              }
+            </div>
+
+            <form class="form-grid user-form" [formGroup]="userForm" (ngSubmit)="submitUser()" novalidate>
+              <mat-form-field appearance="outline">
+                <input matInput placeholder="Username*" autocomplete="off" formControlName="username" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <input matInput placeholder="Email*" autocomplete="off" type="email" formControlName="email" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <input matInput placeholder="Password*" autocomplete="new-password" type="password" formControlName="password" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <input matInput placeholder="First name*" autocomplete="off" formControlName="firstName" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <input matInput placeholder="Last name*" autocomplete="off" formControlName="lastName" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-select placeholder="Role" formControlName="role">
+                  <mat-option value="CUSTOMER">Customer</mat-option>
+                  <mat-option value="ADMIN">Admin</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="form-actions span-2">
+                <button mat-raised-button color="primary" type="submit" [disabled]="userSaving()">
+                  {{ userSaving() ? 'Saving...' : editingUserId() ? 'Update user' : 'Create user' }}
+                </button>
+                <button mat-stroked-button type="button" (click)="resetUserForm()">Reset</button>
+              </div>
+            </form>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Users</p>
+                <h2>Registered users</h2>
+              </div>
+            </div>
+
+            <div class="list list--scrollable">
+              @if (users().length === 0) {
+                <p class="muted">No users found.</p>
+              } @else {
+                @for (user of users(); track user.id) {
+                  <article class="list-row">
+                    <div>
+                      <strong>{{ user.username }}</strong>
+                      <p>{{ user.email }} · {{ user.role }}</p>
+                    </div>
+                    <div class="list-actions">
+                      <button mat-stroked-button type="button" (click)="editUser(user)">Edit</button>
+                      <button mat-stroked-button type="button" (click)="removeUser(user.id)">Delete</button>
+                    </div>
+                  </article>
+                }
+              }
+            </div>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel panel--wide">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Stripe payments</p>
+                <h2>Latest successful and pending transactions</h2>
+              </div>
+            </div>
+
+            @if (paymentTransactions().length === 0) {
+              <p class="muted">Nema transakcija jos uvek.</p>
+            } @else {
+              <div class="list list--scrollable">
+                @for (transaction of paymentTransactions(); track transaction.paymentId) {
+                  <article class="list-row list-row--transaction">
+                    <div>
+                      <strong>#{{ transaction.orderId }} · {{ transaction.customerUsername }}</strong>
+                      <p>{{ transaction.customerEmail }}</p>
+                      <p>Intent: {{ transaction.paymentIntentId }}</p>
+                      <p>
+                        @for (item of transaction.purchasedItems; track item.productName + item.quantity + item.unitPrice) {
+                          <span class="transaction-item">
+                            {{ item.productName }} · x{{ item.quantity }} · {{ item.unitPrice | number: '1.2-2' }} USD
+                          </span>
+                        }
+                      </p>
+                    </div>
+                    <div class="list-row__side">
+                      <strong>{{ transaction.totalAmount | number: '1.2-2' }} {{ transaction.currency }}</strong>
+                      <p>{{ transaction.paymentStatus }}</p>
+                      <p>{{ formatOrderDate(transaction.paidAt || '') }}</p>
+                      <div class="status-actions">
+                        <button mat-stroked-button type="button" (click)="updatePaymentStatus(transaction.paymentId, 'SUCCEEDED')" 
+                                [disabled]="paymentStatusUpdating() === transaction.paymentId">
+                          Succeed
+                        </button>
+                        <button mat-stroked-button type="button" (click)="updatePaymentStatus(transaction.paymentId, 'FAILED')"
+                                [disabled]="paymentStatusUpdating() === transaction.paymentId">
+                          Fail
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </mat-card>
+        </section>
+      }
+    </section>

@@ -1,0 +1,428 @@
+
+      :host {
+        display: block;
+      }
+
+      .tickets-page {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .tickets-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .tickets-head__eyebrow {
+        margin: 0;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: #93c5fd;
+      }
+
+      .tickets-head h1 {
+        margin: 0.45rem 0;
+        color: #f8fafc;
+      }
+
+      .tickets-head p {
+        margin: 0;
+        color: #cbd5e1;
+      }
+
+      .tickets-panel {
+        display: grid;
+        grid-template-columns: minmax(220px, 360px) 1fr;
+        gap: 1rem;
+        border-radius: 20px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 23, 42, 0.56);
+      }
+
+      .tickets-panel__legend {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 1rem;
+        color: #cbd5e1;
+        flex-wrap: wrap;
+      }
+
+      .tickets-panel__legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .tickets-panel__legend mat-icon {
+        font-size: 1rem;
+        width: 1rem;
+        height: 1rem;
+      }
+
+      .screenings h2,
+      .seats h2,
+      .history h2 {
+        margin: 0 0 0.65rem;
+        color: #f8fafc;
+      }
+
+      .seats-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: end;
+        flex-wrap: wrap;
+        margin-bottom: 0.65rem;
+      }
+
+      .seats-head p {
+        margin: 0;
+        color: #94a3b8;
+      }
+
+      .seat-type-filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .filter-button {
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .filter-button--active {
+        border-color: rgba(14, 165, 233, 0.95);
+        background: rgba(14, 165, 233, 0.18);
+        color: #e0f2fe;
+      }
+
+      .screenings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 0.8rem;
+      }
+
+      .screening-card {
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(17,24,39,0.6), rgba(15,23,42,0.5));
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1rem;
+        padding: 1rem;
+        align-items: center;
+        min-height: 110px;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .screening-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      }
+
+      .screening-card--active {
+        border-color: rgba(59,130,246,0.9);
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.14);
+      }
+
+      .screening-card > div:first-child {
+        display: grid;
+        gap: 0.2rem;
+      }
+
+      .screening-card__time {
+        margin: 0;
+        color: #93c5fd;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .screening-card h3 {
+        margin: 0.25rem 0;
+        color: #f8fafc;
+        font-size: 1.05rem;
+      }
+
+      .screening-card__meta {
+        margin: 0;
+        color: #cbd5e1;
+        font-size: 0.92rem;
+      }
+
+      .screening-card__actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.6rem;
+        justify-content: center;
+        min-width: 120px;
+      }
+
+      .screening-card__actions span {
+        color: #f8fafc;
+        font-weight: 700;
+        font-size: 0.98rem;
+      }
+
+      .screening-card__actions button {
+        min-width: 84px;
+        border-radius: 999px;
+      }
+
+      /* Improve form-field contrast for selects and inputs */
+      :host ::ng-deep .mat-mdc-form-field .mdc-floating-label,
+      :host ::ng-deep .mat-mdc-select-value,
+      :host ::ng-deep .mat-mdc-input-element {
+        color: #e2e8f0 !important;
+      }
+
+      :host ::ng-deep .mat-mdc-text-field-wrapper {
+        background: rgba(15,23,42,0.82) !important;
+        border-radius: 10px;
+      }
+
+      /* Make history filters more visible on dark background */
+      .history-filters mat-form-field {
+        width: 220px;
+      }
+
+      .history-filters button {
+        height: 40px;
+        align-self: center;
+      }
+
+      .state-card {
+        min-height: 120px;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 18px;
+        display: grid;
+        place-content: center;
+        gap: 0.6rem;
+        color: #cbd5e1;
+        background: rgba(15, 23, 42, 0.48);
+      }
+
+      .state-card--error {
+        border-color: rgba(248, 113, 113, 0.8);
+        color: #fecaca;
+      }
+
+      .recommendation-card {
+        border-radius: 18px;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.55));
+        padding: 0.9rem;
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+      }
+
+      .recommendation-card__eyebrow {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.72rem;
+        color: #93c5fd;
+      }
+
+      .recommendation-card__text {
+        margin: 0.25rem 0 0;
+        color: #cbd5e1;
+      }
+
+      .recommendation-list {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .seat-rows {
+        display: grid;
+        gap: 0.65rem;
+        max-height: 26rem;
+        overflow-y: auto;
+        padding-right: 0.35rem;
+        align-content: start;
+        scrollbar-gutter: stable;
+      }
+
+      .seat-rows::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .seat-rows::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.4);
+        border-radius: 999px;
+      }
+
+      .seat-rows::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.5);
+      }
+
+      .seat-row {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 0.85rem;
+        align-items: center;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 23, 42, 0.42);
+        padding: 0.75rem;
+      }
+
+      .seat-row__label {
+        display: grid;
+        gap: 0.2rem;
+      }
+
+      .seat-row__label strong {
+        color: #f8fafc;
+      }
+
+      .seat-row__label span {
+        color: #94a3b8;
+        font-size: 0.84rem;
+      }
+
+      .seat-row__grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .seat-chip {
+        min-width: 2.7rem;
+        height: 2.5rem;
+        border-radius: 0.7rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(30, 41, 59, 0.62);
+        color: #e2e8f0;
+        cursor: pointer;
+        transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+      }
+
+      .seat-chip:hover {
+        transform: translateY(-1px);
+        border-color: rgba(59, 130, 246, 0.8);
+      }
+
+      .seat-chip--selected {
+        border-color: rgba(16, 185, 129, 0.9);
+        background: rgba(16, 185, 129, 0.2);
+      }
+
+      .seat-chip--recommended {
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.25);
+      }
+
+      .seat-chip--recommended:not(.seat-chip--selected):not(.seat-chip--reserved) {
+        border-color: rgba(96, 165, 250, 0.7);
+        background: rgba(30, 64, 175, 0.24);
+      }
+
+      .seat-chip--vip {
+        border-color: rgba(250, 204, 21, 0.65);
+      }
+
+      .seat-chip--reserved {
+        border-color: rgba(248, 113, 113, 0.75);
+        background: rgba(127, 29, 29, 0.45);
+        color: #fecaca;
+        cursor: not-allowed;
+        opacity: 0.72;
+      }
+
+      .seat-chip:disabled {
+        pointer-events: none;
+      }
+
+      .cta-row {
+        border-radius: 20px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 23, 42, 0.54);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .cta-row__label {
+        margin: 0;
+        color: #94a3b8;
+      }
+
+      .cta-row strong {
+        font-size: 1.35rem;
+        color: #f8fafc;
+      }
+
+      .history-list {
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .history-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.65rem;
+      }
+
+      .history-filters {
+        display: flex;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+        align-items: end;
+      }
+
+      .history-filters mat-form-field {
+        width: 180px;
+      }
+
+      .history-row {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 23, 42, 0.56);
+        padding: 0.75rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.6rem;
+      }
+
+      .history-row strong {
+        color: #f8fafc;
+      }
+
+      .history-row p {
+        margin: 0.25rem 0 0;
+        color: #94a3b8;
+      }
+
+      @media (max-width: 900px) {
+        .tickets-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .tickets-panel__legend {
+          justify-content: start;
+        }
+
+        .cta-row {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .history-row {
+          grid-template-columns: 1fr;
+        }
+      }

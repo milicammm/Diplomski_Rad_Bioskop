@@ -1,0 +1,131 @@
+
+    <section class="checkout-page">
+      <header class="checkout-head">
+        <div class="checkout-head__copy">
+          <p class="checkout-head__eyebrow">Final step</p>
+          <h1>Review your booking</h1>
+          <p>Check the screening details, selected seats, and total before continuing to secure payment.</p>
+        </div>
+        <a mat-stroked-button class="checkout-head__back" routerLink="/tickets">
+          <mat-icon>arrow_back</mat-icon>
+          Back to tickets
+        </a>
+      </header>
+
+      @if (isLoading()) {
+        <mat-card appearance="outlined" class="state-card">
+          <mat-spinner diameter="36" />
+          <p>Loading checkout data...</p>
+        </mat-card>
+      } @else if (errorMessage()) {
+        <mat-card appearance="outlined" class="state-card state-card--error">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ errorMessage() }}</p>
+          <a mat-raised-button color="primary" routerLink="/tickets">Choose tickets again</a>
+        </mat-card>
+      } @else {
+        <div class="checkout-grid">
+          <mat-card appearance="outlined" class="checkout-card">
+            <div class="checkout-card__header">
+              <div>
+                <p class="checkout-card__eyebrow">Screening</p>
+                <h2>{{ screening()!.movieTitle }}</h2>
+              </div>
+              <div class="checkout-card__badge">
+                <mat-icon>movie</mat-icon>
+              </div>
+            </div>
+
+            <div class="meta-list">
+              <div class="meta-list__item">
+                <mat-icon>event</mat-icon>
+                <div>
+                  <span>Date and time</span>
+                  <strong>{{ screeningDateTime() }}</strong>
+                </div>
+              </div>
+              <div class="meta-list__item">
+                <mat-icon>theaters</mat-icon>
+                <div>
+                  <span>Hall</span>
+                  <strong>{{ screening()!.hallName }}</strong>
+                </div>
+              </div>
+              <div class="meta-list__item">
+                <mat-icon>confirmation_number</mat-icon>
+                <div>
+                  <span>Price per seat</span>
+                  <strong>{{ screeningPrice() | number: '1.2-2' }} USD</strong>
+                </div>
+              </div>
+              <div class="meta-list__item">
+                <mat-icon>local_movies</mat-icon>
+                <div>
+                  <span>Tickets sold</span>
+                  <strong>{{ screening()!.soldTickets || 0 }}</strong>
+                </div>
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card appearance="outlined" class="checkout-card checkout-card--summary">
+            <div class="checkout-card__header">
+              <div>
+                <p class="checkout-card__eyebrow">Selected seats</p>
+                <h2>Confirm & pay</h2>
+                <p class="checkout-card__subtext">A quick summary of the seats you are about to book.</p>
+              </div>
+              <div class="checkout-card__badge checkout-card__badge--accent">
+                <mat-icon>event_seat</mat-icon>
+              </div>
+            </div>
+
+            <div class="summary-surface">
+              <div class="summary-grid-wrap">
+                <div class="summary-left">
+                  <mat-chip-set class="seat-list" aria-label="Selected seats">
+                    @for (seat of selectedSeats(); track seat.id) {
+                      <mat-chip selectable="false">
+                        <mat-icon matChipAvatar>event_seat</mat-icon>
+                        {{ seatLabel(seat) }}
+                        <span class="seat-list__type">{{ seat.type }}</span>
+                      </mat-chip>
+                    }
+                  </mat-chip-set>
+
+                  @if (missingSeats().length > 0) {
+                    <p class="warn-text" role="alert">
+                      {{ missingSeats().length }} seat(s) are no longer available. Please go back to Tickets and select new seats.
+                    </p>
+                  }
+                </div>
+
+                <div class="summary-right">
+                  <div class="summary-total-card">
+                    <div class="summary-total-card__label">Total</div>
+                    <div class="summary-total-card__amount">{{ totalPrice() | number: '1.2-2' }} USD</div>
+                    <div class="summary-total-card__meta">{{ selectedSeats().length }} seats • {{ screeningPrice() | number: '1.2-2' }} USD / seat</div>
+                    <button
+                      mat-raised-button
+                      color="primary"
+                      type="button"
+                      class="checkout-card__cta checkout-card__cta--right"
+                      [disabled]="!canConfirm()"
+                      (click)="confirmOrder()"
+                    >
+                      @if (isRedirectingToPayment()) {
+                        Redirecting...
+                      } @else if (isSubmitting()) {
+                        Creating order...
+                      } @else {
+                        Pay with card
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+      }
+    </section>

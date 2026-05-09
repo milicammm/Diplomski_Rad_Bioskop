@@ -1,0 +1,80 @@
+
+    <section class="auth-wrap">
+      <div class="auth-shell">
+        <div class="auth-showcase">
+          <div class="brand-pill">
+            <mat-icon>movie</mat-icon>
+            <span>CineTicket</span>
+          </div>
+
+          <div class="showcase-content">
+            <p class="mini-text">PREMIUM CINEMA EXPERIENCE</p>
+            <h2>Reserve tickets faster. Enjoy movies smarter.</h2>
+            <p class="showcase-copy">
+             Overview of screenings, selection of seats and simple reservation in a modern cinema environment.
+            </p>
+
+            <div class="showcase-tags">
+              <span>Now Showing</span>
+              <span>Smart Seats</span>
+              <span>Fast Booking</span>
+            </div>
+          </div>
+        </div>
+
+        <mat-card appearance="outlined" class="auth-card">
+          <div class="auth-header">
+            <span class="eyebrow">CineTicket</span>
+            <h1>Welcome back</h1>
+            <p>Sign in to continue with your ticket reservations and view your upcoming screenings.</p>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <mat-form-field appearance="outline" class="dark-field">
+              <mat-label>Username</mat-label>
+              <mat-icon matPrefix>person</mat-icon>
+              <input matInput formControlName="username" autocomplete="username" />
+              @if (form.controls.username.invalid && form.controls.username.touched) {
+                <mat-error>Username is required.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="dark-field">
+              <mat-label>Password</mat-label>
+              <mat-icon matPrefix>lock</mat-icon>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+                autocomplete="current-password" />
+
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                class="password-toggle"
+                (click)="hidePassword.set(!hidePassword())">
+                <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+              </button>
+
+              @if (form.controls.password.invalid && form.controls.password.touched) {
+                <mat-error>Password is required.</mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              type="submit"
+              class="login-btn"
+              [disabled]="form.invalid || isSubmitting()">
+              @if (isSubmitting()) { Signing in... } @else { Login }
+            </button>
+          </form>
+
+          <p class="auth-alt">
+            Don't have an account?
+            <a routerLink="/auth/register">Create one</a>
+          </p>
+        </mat-card>
+      </div>
+    </section>

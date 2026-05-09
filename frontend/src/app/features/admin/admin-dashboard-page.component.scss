@@ -1,0 +1,351 @@
+
+      :host {
+        display: block;
+      }
+
+      .admin-page {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .admin-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .admin-head__eyebrow,
+      .panel__eyebrow {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.72rem;
+        color: #93c5fd;
+      }
+
+      .admin-head h1,
+      .panel h2 {
+        margin: 0.35rem 0;
+        color: #f8fafc;
+      }
+
+      .admin-head p {
+        margin: 0;
+        color: #cbd5e1;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .stat-card,
+      .panel {
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 23, 42, 0.55);
+      }
+
+      .stat-card p {
+        margin: 0;
+        color: #93c5fd;
+      }
+
+      .stat-card strong {
+        display: block;
+        margin-top: 0.4rem;
+        font-size: 1.5rem;
+        color: #f8fafc;
+      }
+
+      .stat-card small {
+        color: #94a3b8;
+      }
+
+      .section-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .panel {
+        padding: 1rem;
+      }
+
+      .panel--wide {
+        grid-column: 1 / -1;
+      }
+
+      .panel__head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: start;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .span-2 {
+        grid-column: 1 / -1;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .compact-select {
+        min-width: 220px;
+      }
+
+      .list {
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .list--scrollable {
+        max-height: 28rem;
+        overflow-y: auto;
+        padding-right: 0.35rem;
+        align-content: start;
+        scrollbar-gutter: stable;
+      }
+
+      .list--scrollable::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .list--scrollable::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.4);
+        border-radius: 999px;
+      }
+
+      .list--scrollable::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.5);
+      }
+
+      .list-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.8rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(30, 41, 59, 0.55);
+        padding: 0.7rem;
+      }
+
+      .list-row--transaction {
+        align-items: start;
+      }
+
+      .list-row strong {
+        color: #f8fafc;
+      }
+
+      .list-row p {
+        margin: 0.25rem 0 0;
+        color: #94a3b8;
+      }
+
+      .list-actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        align-items: start;
+      }
+
+      .list-row__side {
+        display: grid;
+        justify-items: end;
+        gap: 0.35rem;
+      }
+
+      .status-actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        justify-content: end;
+      }
+
+      .transaction-item {
+        display: block;
+        color: #cbd5e1;
+      }
+
+      .muted {
+        color: #94a3b8;
+      }
+
+      .helper-text {
+        margin: 0.2rem 0 0;
+        color: #facc15;
+        font-size: 0.9rem;
+      }
+
+      :host ::ng-deep .mat-mdc-text-field-wrapper {
+        background-color: transparent !important;
+      }
+
+      :host ::ng-deep .mdc-text-field {
+        background-color: rgba(30, 41, 59, 0.8) !important;
+        border-radius: 6px !important;
+      }
+
+      :host ::ng-deep .mdc-text-field__input {
+        background-color: transparent !important;
+        color: #cbd5e1 !important;
+        caret-color: #60a5fa !important;
+      }
+
+      :host ::ng-deep .user-form .mdc-text-field__input,
+      :host ::ng-deep .user-form .mat-mdc-select-trigger {
+        color: #dbe4f0 !important;
+      }
+
+      :host ::ng-deep .user-form .mdc-text-field {
+        background-color: rgba(15, 23, 42, 0.72) !important;
+      }
+
+      :host ::ng-deep .user-form .mat-mdc-text-field-wrapper,
+      :host ::ng-deep .user-form .mat-mdc-form-field-flex,
+      :host ::ng-deep .user-form .mat-mdc-form-field-infix {
+        background-color: transparent !important;
+      }
+
+      :host ::ng-deep .user-form .mat-mdc-form-field input:-webkit-autofill,
+      :host ::ng-deep .user-form .mat-mdc-form-field input:-webkit-autofill:hover,
+      :host ::ng-deep .user-form .mat-mdc-form-field input:-webkit-autofill:focus,
+      :host ::ng-deep .user-form .mat-mdc-form-field textarea:-webkit-autofill,
+      :host ::ng-deep .user-form .mat-mdc-form-field select:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.92) inset !important;
+        -webkit-text-fill-color: #dbe4f0 !important;
+        caret-color: #60a5fa !important;
+        transition: background-color 9999s ease-in-out 0s;
+      }
+
+      :host ::ng-deep .user-form .mdc-text-field__input::placeholder {
+        color: #7f8ea3 !important;
+        opacity: 1;
+      }
+
+      :host ::ng-deep .user-form .mdc-floating-label {
+        color: #7f8ea3 !important;
+      }
+
+      :host ::ng-deep .mdc-text-field__input::placeholder {
+        color: #64748b !important;
+      }
+
+      :host ::ng-deep input.mdc-text-field__input {
+        background-color: transparent !important;
+        color: #cbd5e1 !important;
+      }
+
+      :host ::ng-deep textarea.mdc-text-field__input {
+        background-color: transparent !important;
+        color: #cbd5e1 !important;
+      }
+
+      :host ::ng-deep .mdc-floating-label {
+        color: #cbd5e1 !important;
+      }
+
+      :host ::ng-deep .mdc-floating-label--float-above {
+        color: #94a3b8 !important;
+      }
+
+      :host ::ng-deep .mdc-notched-outline {
+        --mdc-notched-outline-leading-border: rgba(148, 163, 184, 0.3);
+        --mdc-notched-outline-notch-border: rgba(148, 163, 184, 0.3);
+        --mdc-notched-outline-trailing-border: rgba(148, 163, 184, 0.3);
+      }
+
+      :host ::ng-deep .mdc-text-field--filled {
+        background-color: rgba(30, 41, 59, 0.8) !important;
+      }
+
+      :host ::ng-deep .mdc-text-field--focused .mdc-notched-outline {
+        --mdc-notched-outline-leading-border: #60a5fa;
+        --mdc-notched-outline-notch-border: #60a5fa;
+        --mdc-notched-outline-trailing-border: #60a5fa;
+      }
+
+      :host ::ng-deep .mat-mdc-select {
+        background-color: transparent !important;
+      }
+
+      :host ::ng-deep .mat-mdc-select-trigger {
+        color: #cbd5e1 !important;
+      }
+
+      :host ::ng-deep .mdc-select__anchor {
+        background-color: rgba(30, 41, 59, 0.8) !important;
+      }
+
+      :host ::ng-deep .mat-mdc-option {
+        color: #cbd5e1 !important;
+      }
+
+      :host ::ng-deep .mat-mdc-option:hover {
+        background-color: rgba(60, 120, 216, 0.2) !important;
+      }
+
+      :host ::ng-deep .mat-mdc-option.mdc-list-item--selected {
+        background-color: rgba(60, 120, 216, 0.3) !important;
+        color: #60a5fa !important;
+      }
+
+      :host ::ng-deep .mdc-select__menu .mdc-list {
+        background-color: rgba(20, 30, 50, 0.95) !important;
+      }
+
+      .state-card {
+        min-height: 140px;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 18px;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 0.6rem;
+        color: #cbd5e1;
+        background: rgba(15, 23, 42, 0.48);
+      }
+
+      .state-card--error {
+        border-color: rgba(248, 113, 113, 0.85);
+        color: #fecaca;
+      }
+
+      @media (max-width: 1100px) {
+        .stats-grid,
+        .section-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .panel--wide {
+          grid-column: auto;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .stats-grid,
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .span-2 {
+          grid-column: auto;
+        }
+      }
+ 

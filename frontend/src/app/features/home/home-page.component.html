@@ -1,0 +1,181 @@
+<section class="hero">
+  <div class="hero__glow hero__glow--left"></div>
+  <div class="hero__glow hero__glow--right"></div>
+
+  <mat-toolbar class="hero__toolbar" role="presentation">
+    <span class="hero__chip">Cinema Commerce Platform</span>
+    @if (currentUser()) {
+      <span class="hero__account">
+        {{ currentUser()!.firstName }} {{ currentUser()!.lastName }} · {{ isAdmin() ? 'Admin' : 'Customer' }}
+      </span>
+    }
+  </mat-toolbar>
+
+  <div class="hero__content">
+    <p class="hero__eyebrow">Now Streaming In Cinema</p>
+    <h1 class="hero__title">Book your next movie night in seconds.</h1>
+    <p class="hero__subtitle">
+      Discover real movies from the live database, check duration and genre instantly, and reserve your seats in one smooth flow.
+    </p>
+
+    <div class="hero__actions">
+      <a mat-raised-button color="primary" routerLink="/movies">Browse Movies</a>
+      <a mat-stroked-button routerLink="/about">About CineTicket</a>
+    </div>
+  </div>
+</section>
+
+<section class="movies-section">
+  <div class="movies-section__header">
+    <div>
+      <p class="movies-section__eyebrow">Featured Collection</p>
+      <h2>Movies on the home page</h2>
+    </div>
+    <a class="movies-section__link" routerLink="/movies">See full catalog</a>
+  </div>
+
+  <mat-divider />
+
+  @if (loading()) {
+    <div class="state state--loading">
+      <mat-spinner diameter="38" />
+      <p>Loading movies...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state state--error">
+      <mat-icon>error</mat-icon>
+      <p>{{ error() }}</p>
+      <button mat-stroked-button type="button" (click)="loadMovies()">Retry</button>
+    </div>
+  } @else {
+    <div class="movie-grid">
+      @for (movie of movies(); track trackMovie($index, movie)) {
+        <mat-card appearance="outlined" class="movie-card">
+          <div class="movie-card__poster-wrap">
+            <img
+              class="movie-card__poster"
+              [src]="posterUrl(movie)"
+              [alt]="movie.title + ' poster'"
+              loading="lazy"
+              decoding="async"
+              (error)="onPosterError($event)"
+            />
+            <div class="movie-card__poster-shade"></div>
+            <div class="movie-card__poster-meta">
+              <span class="movie-card__rating">
+                <mat-icon>star</mat-icon>
+                {{ ratingFor(movie) }}
+              </span>
+              <span class="movie-card__duration">{{ movie.duration }} min</span>
+            </div>
+          </div>
+
+          <div class="movie-card__content">
+            <h3>{{ movie.title }}</h3>
+
+            <mat-chip-set>
+              <mat-chip>{{ movie.genre }}</mat-chip>
+              <mat-chip>{{ movie.language || 'English' }}</mat-chip>
+            </mat-chip-set>
+
+            <p class="movie-card__description">{{ shortDescription(movie) }}</p>
+
+            <div class="movie-card__actions">
+              <a mat-raised-button color="primary" [routerLink]="['/tickets']" [queryParams]="{ movieId: movie.id }">Book Ticket</a>
+              <a mat-button routerLink="/movies">Details</a>
+            </div>
+          </div>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
+
+<section class="features-section">
+  <div class="features-section__header">
+    <p class="features-section__eyebrow">Why Choose Us</p>
+    <h2>The CineTicket Difference</h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <mat-icon>lightning_bolt</mat-icon>
+      </div>
+      <h3>Instant Booking</h3>
+      <p>Reserve your seats in seconds. No waiting, no hassle—just seamless cinema ticketing.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <mat-icon>lock</mat-icon>
+      </div>
+      <h3>Secure Payments</h3>
+      <p>Industry-leading Stripe integration keeps your financial data safe and encrypted.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <mat-icon>local_offer</mat-icon>
+      </div>
+      <h3>Best Prices</h3>
+      <p>Compare prices across screenings and get the best deal for your movie night.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card__icon">
+        <mat-icon>devices</mat-icon>
+      </div>
+      <h3>Mobile-First</h3>
+      <p>Fully responsive design—book from your phone, tablet, or desktop anytime, anywhere.</p>
+    </div>
+  </div>
+</section>
+
+<section class="offers-section">
+  <div class="offers-section__header">
+    <p class="offers-section__eyebrow">Limited Time Offers</p>
+    <h2>Exclusive Deals</h2>
+  </div>
+
+  <div class="offers-grid">
+    <div class="offer-card">
+      <div class="offer-card__badge">SAVE 15%</div>
+      <div class="offer-card__content">
+        <h3>Movie Night Combo</h3>
+        <p>Book any screening + VIP seat upgrade</p>
+        <div class="offer-card__price">
+          <span class="offer-card__original">$28.99</span>
+          <span class="offer-card__discounted">$24.99</span>
+        </div>
+        <button mat-raised-button color="primary" routerLink="/movies" class="offer-card__cta">Shop Now</button>
+      </div>
+    </div>
+
+    <div class="offer-card">
+      <div class="offer-card__badge">SAVE 20%</div>
+      <div class="offer-card__content">
+        <h3>Group Booking</h3>
+        <p>Reserve 4+ tickets and unlock group discounts</p>
+        <div class="offer-card__price">
+          <span class="offer-card__original">$53.96</span>
+          <span class="offer-card__discounted">$43.20</span>
+        </div>
+        <button mat-raised-button color="primary" routerLink="/movies" class="offer-card__cta">Book Group</button>
+      </div>
+    </div>
+
+    <div class="offer-card">
+      <div class="offer-card__badge">NEW</div>
+      <div class="offer-card__content">
+        <h3>Weekend Special</h3>
+        <p>Friday & Saturday evening screenings at premium venues</p>
+        <div class="offer-card__price">
+          <span class="offer-card__original">From $14.99</span>
+          <span class="offer-card__discounted">See Screenings</span>
+        </div>
+        <button mat-raised-button color="primary" routerLink="/movies" class="offer-card__cta">Browse</button>
+      </div>
+    </div>
+  </div>
+</section>

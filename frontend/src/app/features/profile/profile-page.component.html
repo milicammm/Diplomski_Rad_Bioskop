@@ -1,0 +1,164 @@
+
+    @if (currentUser(); as user) {
+      <section class="profile-hero glass-panel">
+        <div class="profile-hero__copy">
+          <p class="profile-hero__eyebrow">My account</p>
+          <h1>Profile & tickets</h1>
+          <p class="profile-hero__subtitle">
+            Review your personal details and all previously purchased tickets in one place.
+          </p>
+        </div>
+
+        <div class="profile-hero__avatar" aria-hidden="true">
+          {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+        </div>
+      </section>
+
+      <section class="profile-grid">
+        <mat-card appearance="outlined" class="glass-panel profile-card profile-card--details">
+          <div class="profile-card__head">
+            <div>
+              <p class="profile-card__eyebrow">Profile</p>
+              <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+            </div>
+            <span class="profile-role">{{ user.role }}</span>
+          </div>
+
+          <div class="profile-details">
+            <div class="profile-details__item">
+              <span>Username</span>
+              <strong>{{ user.username }}</strong>
+            </div>
+            <div class="profile-details__item">
+              <span>Email</span>
+              <strong>{{ user.email }}</strong>
+            </div>
+            <div class="profile-details__item">
+              <span>Phone</span>
+              <strong>{{ user.phoneNumber || 'Not set' }}</strong>
+            </div>
+            <div class="profile-details__item">
+              <span>Registered</span>
+              <strong>{{ user.createdAt | date: 'dd MMMM yyyy, HH:mm' }}</strong>
+            </div>
+            <div class="profile-details__item">
+              <span>Status</span>
+              <strong>{{ user.enabled ? 'Active' : 'Disabled' }}</strong>
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <button mat-raised-button color="primary" (click)="openEditDialog()">
+              <mat-icon>edit</mat-icon>
+              Edit Profile
+            </button>
+            <a mat-raised-button color="primary" routerLink="/tickets">
+              <mat-icon>confirmation_number</mat-icon>
+              Buy tickets
+            </a>
+            <a mat-stroked-button routerLink="/movies">
+              <mat-icon>movie</mat-icon>
+              Browse movies
+            </a>
+          </div>
+        </mat-card>
+
+        <mat-card appearance="outlined" class="glass-panel profile-card profile-card--stats">
+          <p class="profile-card__eyebrow">Activity</p>
+          <h2>Ticket summary</h2>
+
+          <div class="stats-grid">
+            <div class="stat-pill">
+              <span>Orders</span>
+              <strong>{{ orderCount() }}</strong>
+            </div>
+            <div class="stat-pill">
+              <span>Tickets</span>
+              <strong>{{ totalTickets() }}</strong>
+            </div>
+            <div class="stat-pill">
+              <span>Spent</span>
+              <strong>{{ totalSpent() | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+            </div>
+            <div class="stat-pill">
+              <span>Latest</span>
+              <strong>{{ latestOrderDate() || 'No orders yet' }}</strong>
+            </div>
+          </div>
+
+          <p class="profile-note">
+            This page is powered by the authenticated session and the existing orders endpoint.
+          </p>
+        </mat-card>
+      </section>
+
+      <section class="tickets-section glass-panel">
+        <div class="tickets-section__head">
+          <div>
+            <p class="profile-card__eyebrow">History</p>
+            <h2>Purchased tickets</h2>
+          </div>
+          <span class="tickets-section__count">{{ orders().length }} orders</span>
+        </div>
+
+        @if (loading()) {
+          <div class="empty-state">Loading your ticket history...</div>
+        } @else if (errorMessage()) {
+          <div class="empty-state empty-state--error" role="alert">{{ errorMessage() }}</div>
+        } @else if (orders().length === 0) {
+          <div class="empty-state">
+            <mat-icon>local_activity</mat-icon>
+            <p>You do not have any orders yet.</p>
+            <a mat-raised-button color="primary" routerLink="/movies">Explore movies</a>
+          </div>
+        } @else {
+          <div class="orders-list">
+            @for (order of orders(); track order.id) {
+              <article class="order-card">
+                <div class="order-card__top">
+                  <div>
+                    <p class="order-card__eyebrow">Order #{{ order.id }}</p>
+                    <h3>{{ order.orderItems[0]?.movieTitle || 'Movie order' }}</h3>
+                  </div>
+                  <span class="order-status" [class.order-status--confirmed]="order.status === 'CONFIRMED'">
+                    {{ order.status }}
+                  </span>
+                </div>
+
+                <div class="order-meta">
+                  <span><mat-icon>event</mat-icon>{{ order.orderDate | date: 'dd MMM yyyy, HH:mm' }}</span>
+                  <span><mat-icon>payments</mat-icon>{{ order.totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  <span><mat-icon>confirmation_number</mat-icon>{{ order.orderItems.length }} ticket(s)</span>
+                </div>
+
+                <mat-divider />
+
+                <div class="order-items">
+                  @for (item of order.orderItems; track item.id) {
+                    <div class="order-item">
+                      <div>
+                        <strong>{{ item.movieTitle }}</strong>
+                        <p>{{ item.hallName }} • {{ item.screeningDateTime }}</p>
+                      </div>
+                      <mat-chip-set aria-label="Seat information">
+                        <mat-chip selectable="false">Seat {{ item.seatInfo }}</mat-chip>
+                        <mat-chip selectable="false">{{ item.quantity }}x</mat-chip>
+                      </mat-chip-set>
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    } @else {
+      <section class="empty-state glass-panel">
+        <mat-icon>lock</mat-icon>
+        <h1>Sign in to view your profile</h1>
+        <p>Your personal profile and ticket history are available after login.</p>
+        <a mat-raised-button color="primary" routerLink="/auth/login">Go to login</a>
+      </section>
+    }
+
+ 
