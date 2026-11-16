@@ -44,4 +44,14 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.screening.id = :screeningId " +
            "AND oi.order.status = 'CONFIRMED'")
     Long countSoldTicketsForScreening(@Param("screeningId") Long screeningId);
+
+    @Query("SELECT oi.seat.id AS seatId, COUNT(oi) AS count FROM OrderItem oi " +
+           "WHERE oi.seat.hall.id = :hallId AND oi.order.status = 'CONFIRMED' " +
+           "GROUP BY oi.seat.id")
+    List<SeatPopularityProjection> countConfirmedBySeatForHall(@Param("hallId") Long hallId);
+
+    interface SeatPopularityProjection {
+        Long getSeatId();
+        Long getCount();
+    }
 }

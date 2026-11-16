@@ -3,16 +3,16 @@
       <div>
         <p class="page-head__eyebrow">Now showing</p>
         <h1>Browse movies</h1>
-        <p class="page-head__subtitle">Dark, minimal and responsive movie catalog with quick booking action.</p>
+        <p class="page-head__subtitle">Movie catalog with quick booking action.</p>
       </div>
       <div class="page-head__stats">
         <div>
           <strong>{{ totalMovies() }}</strong>
-          <span>movies</span>
+          <span>{{ totalMovies() }} movies</span>
         </div>
         <div>
           <strong>{{ pageInfo().totalPages }}</strong>
-          <span>pages</span>
+          <span>{{ pageInfo().totalPages }} pages</span>
         </div>
         <div>
           <strong>4.8</strong>
@@ -26,7 +26,7 @@
 
     <section class="filters glass-panel" [formGroup]="filtersForm">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Search</mat-label>
+        <mat-label>Search movies</mat-label>
         <input matInput formControlName="keyword" placeholder="Search titles, genres, directors" />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
@@ -106,7 +106,7 @@
                 }
               </div>
               <h2>{{ movie.title }}</h2>
-              <p class="movie-card__meta">{{ movie.director || 'Cinema release' }} • {{ movie.duration }} min • {{ movie.language || 'Unknown' }}</p>
+              <p class="movie-card__meta">{{ movie.director || 'Unknown' }} • {{ movie.duration }} min • {{ movie.language || 'Unknown' }}</p>
               <p class="movie-card__description">{{ movie.description || 'No description available.' }}</p>
 
               <div class="movie-card__stats">

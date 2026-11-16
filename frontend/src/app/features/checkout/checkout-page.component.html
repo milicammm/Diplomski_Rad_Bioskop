@@ -72,7 +72,7 @@
             <div class="checkout-card__header">
               <div>
                 <p class="checkout-card__eyebrow">Selected seats</p>
-                <h2>Confirm & pay</h2>
+                <h2>Confirm &amp; pay</h2>
                 <p class="checkout-card__subtext">A quick summary of the seats you are about to book.</p>
               </div>
               <div class="checkout-card__badge checkout-card__badge--accent">
@@ -98,12 +98,22 @@
                       {{ missingSeats().length }} seat(s) are no longer available. Please go back to Tickets and select new seats.
                     </p>
                   }
+
+                  @if (activeDeal(); as deal) {
+                    <div class="deal-banner" role="status">
+                      <mat-icon>local_offer</mat-icon>
+                      <span>You qualify for the <strong>{{ deal.label }}</strong> — {{ deal.percentage }}% off, applied automatically.</span>
+                    </div>
+                  }
                 </div>
 
                 <div class="summary-right">
                   <div class="summary-total-card">
                     <div class="summary-total-card__label">Total</div>
-                    <div class="summary-total-card__amount">{{ totalPrice() | number: '1.2-2' }} USD</div>
+                    @if (activeDeal()) {
+                      <div class="summary-total-card__original">{{ totalPrice() | number: '1.2-2' }} USD</div>
+                    }
+                    <div class="summary-total-card__amount">{{ discountedTotal() | number: '1.2-2' }} USD</div>
                     <div class="summary-total-card__meta">{{ selectedSeats().length }} seats • {{ screeningPrice() | number: '1.2-2' }} USD / seat</div>
                     <button
                       mat-raised-button

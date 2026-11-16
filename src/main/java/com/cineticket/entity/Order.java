@@ -26,6 +26,15 @@ public class Order {
     @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
+    @Column(name = "original_total_price", precision = 10, scale = 2)
+    private BigDecimal originalTotalPrice;
+
+    @Column(name = "discount_percentage")
+    private Integer discountPercentage;
+
+    @Column(name = "discount_label", length = 100)
+    private String discountLabel;
+
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
@@ -35,6 +44,15 @@ public class Order {
 
     @Column(name = "payment_intent_id", length = 255)
     private String paymentIntentId;
+
+    @Column(name = "stripe_session_id", length = 255)
+    private String stripeSessionId;
+
+    @Column(name = "stripe_session_url", length = 1024)
+    private String stripeSessionUrl;
+
+    @Column(name = "stripe_session_expires_at")
+    private LocalDateTime stripeSessionExpiresAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -112,6 +130,15 @@ public class Order {
     public BigDecimal getTotalPrice() { return totalPrice; }
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
 
+    public BigDecimal getOriginalTotalPrice() { return originalTotalPrice; }
+    public void setOriginalTotalPrice(BigDecimal originalTotalPrice) { this.originalTotalPrice = originalTotalPrice; }
+
+    public Integer getDiscountPercentage() { return discountPercentage; }
+    public void setDiscountPercentage(Integer discountPercentage) { this.discountPercentage = discountPercentage; }
+
+    public String getDiscountLabel() { return discountLabel; }
+    public void setDiscountLabel(String discountLabel) { this.discountLabel = discountLabel; }
+
     public LocalDateTime getOrderDate() { return orderDate; }
     public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
 
@@ -120,6 +147,15 @@ public class Order {
 
     public String getPaymentIntentId() { return paymentIntentId; }
     public void setPaymentIntentId(String paymentIntentId) { this.paymentIntentId = paymentIntentId; }
+
+    public String getStripeSessionId() { return stripeSessionId; }
+    public void setStripeSessionId(String stripeSessionId) { this.stripeSessionId = stripeSessionId; }
+
+    public String getStripeSessionUrl() { return stripeSessionUrl; }
+    public void setStripeSessionUrl(String stripeSessionUrl) { this.stripeSessionUrl = stripeSessionUrl; }
+
+    public LocalDateTime getStripeSessionExpiresAt() { return stripeSessionExpiresAt; }
+    public void setStripeSessionExpiresAt(LocalDateTime stripeSessionExpiresAt) { this.stripeSessionExpiresAt = stripeSessionExpiresAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

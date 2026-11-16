@@ -11,7 +11,7 @@
           <p>{{ errorMessage() }}</p>
         } @else {
           <p class="state-card__eyebrow" [class.state-card__eyebrow--ok]="order()?.status === 'CONFIRMED'">
-            Payment {{ order()?.status || 'UNKNOWN' }}
+            Payment {{ order()?.status || 'Unknown' }}
           </p>
           <h1>
             @if (order()?.status === 'CONFIRMED') {
@@ -23,10 +23,16 @@
           <p>
             @if (order()?.status === 'CONFIRMED') {
               The payment was processed successfully and your order is confirmed.
+            } @else if (pollingTimedOut()) {
+              Your card payment completed, but our server has not yet received the final confirmation. Please refresh this page.
             } @else {
-              Your card payment completed, but our server has not yet received the final confirmation. Please refresh this page in a few moments.
+              Your card payment completed, but our server has not yet received the final confirmation. This page will update automatically.
             }
           </p>
+
+          @if (isPolling()) {
+            <p class="state-card__eyebrow" role="status">Checking for confirmation…</p>
+          }
 
           @if (order(); as currentOrder) {
             <div class="details-grid">
@@ -43,6 +49,16 @@
                 <strong>{{ currentOrder.paymentIntentId ? 'Processed' : 'Pending' }}</strong>
               </div>
             </div>
+
+            @if (currentOrder.discountPercentage && currentOrder.originalTotalPrice) {
+              <div class="deal-banner" role="status">
+                <mat-icon>local_offer</mat-icon>
+                <span>
+                  You saved <strong>{{ (currentOrder.originalTotalPrice - currentOrder.totalPrice) | number: '1.2-2' }} USD</strong>
+                  with the {{ currentOrder.discountLabel }} ({{ currentOrder.discountPercentage }}% off).
+                </span>
+              </div>
+            }
           }
 
           <div class="state-card__actions">
@@ -53,4 +69,4 @@
       </mat-card>
     </section>
 
- 
+

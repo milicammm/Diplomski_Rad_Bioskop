@@ -65,6 +65,30 @@
         height: 1rem;
       }
 
+      .tickets-panel__was {
+        text-decoration: line-through;
+        color: #94a3b8;
+        margin-right: 0.35rem;
+      }
+
+      .deal-banner {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-top: 0.9rem;
+        padding: 0.75rem 1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(56, 189, 248, 0.28);
+        background: rgba(14, 165, 233, 0.12);
+        color: #e0f2fe;
+        font-size: 0.9rem;
+      }
+
+      .deal-banner mat-icon {
+        color: #38bdf8;
+        flex-shrink: 0;
+      }
+
       .screenings h2,
       .seats h2,
       .history h2 {
@@ -266,41 +290,89 @@
         background: rgba(148, 163, 184, 0.5);
       }
 
-      .seat-row {
+      /* Hall-style layout */
+      .hall {
         display: grid;
-        grid-template-columns: 92px minmax(0, 1fr);
-        gap: 0.85rem;
-        align-items: center;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(15, 23, 42, 0.42);
-        padding: 0.75rem;
+        gap: 1rem;
+        align-items: start;
       }
 
-      .seat-row__label {
-        display: grid;
-        gap: 0.2rem;
-      }
-
-      .seat-row__label strong {
-        color: #f8fafc;
-      }
-
-      .seat-row__label span {
-        color: #94a3b8;
-        font-size: 0.84rem;
-      }
-
-      .seat-row__grid {
+      .screen {
+        height: 46px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+        color: #cfe9ff;
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.45rem;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        border: 1px solid rgba(255,255,255,0.04);
+        box-shadow: inset 0 -6px 18px rgba(2,6,23,0.6);
+      }
+
+      .hall-rows {
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .hall-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .hall-row__label {
+        width: 72px;
+        color: #cbd5e1;
+        font-weight: 700;
+        text-align: left;
+        padding-left: 0.25rem;
+      }
+
+      .hall-row__seats {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: nowrap;
+        overflow: auto;
+        padding: 0.25rem 0.5rem;
+      }
+
+      .seat-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .aisle {
+        width: 56px;
+        min-width: 56px;
+        height: 42px;
+        margin: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        border-radius: 6px;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+      }
+
+      .aisle::before {
+        content: '';
+        display: block;
+        width: 2px;
+        height: 60%;
+        background: linear-gradient(180deg, rgba(203,213,225,0.18) 0%, rgba(203,213,225,0.05) 100%);
+        border-radius: 2px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset;
       }
 
       .seat-chip {
         min-width: 2.7rem;
         height: 2.5rem;
-        border-radius: 0.7rem;
+        border-radius: 0.6rem;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: rgba(30, 41, 59, 0.62);
         color: #e2e8f0;
@@ -339,6 +411,21 @@
         opacity: 0.72;
       }
 
+      .hall-seat {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+      }
+
+      .hall-seat__label {
+        font-size: 0.95rem;
+      }
+
       .seat-chip:disabled {
         pointer-events: none;
       }
@@ -362,6 +449,12 @@
       .cta-row strong {
         font-size: 1.35rem;
         color: #f8fafc;
+      }
+
+      .cta-row__seats {
+        margin: 0.15rem 0 0;
+        font-size: 0.85rem;
+        color: #cbd5e1;
       }
 
       .history-list {
@@ -395,7 +488,8 @@
         background: rgba(15, 23, 42, 0.56);
         padding: 0.75rem;
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+        align-items: center;
         gap: 0.6rem;
       }
 

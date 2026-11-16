@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { notAdminGuard } from './core/guards/not-admin.guard';
 import { MainShellComponent } from './shared/layout/main-shell.component';
 
 export const routes: Routes = [
@@ -20,11 +21,13 @@ export const routes: Routes = [
 			},
 			{
 				path: 'movies',
-				loadComponent: () => import('./features/movies/movies-page.component').then((m: any) => m.MoviesPageComponent)
+				loadComponent: () => import('./features/movies/movies-page.component').then((m: any) => m.MoviesPageComponent),
+				canActivate: [notAdminGuard]
 			},
 			{
 				path: 'tickets',
-				loadComponent: () => import('./features/tickets/tickets-page.component').then((m) => m.TicketsPageComponent)
+				loadComponent: () => import('./features/tickets/tickets-page.component').then((m) => m.TicketsPageComponent),
+				canActivate: [notAdminGuard]
 			},
 			{
 				path: 'about',
@@ -38,7 +41,7 @@ export const routes: Routes = [
 			{
 				path: 'checkout',
 				loadComponent: () => import('./features/checkout/checkout-page.component').then((m) => m.CheckoutPageComponent),
-				canActivate: [authGuard]
+				canActivate: [authGuard, notAdminGuard]
 			},
 			{
 				path: 'admin',
@@ -48,12 +51,12 @@ export const routes: Routes = [
 			{
 				path: 'payment/success',
 				loadComponent: () => import('./features/payment/payment-sucess-page.component').then((m) => m.PaymentSuccessPageComponent),
-				canActivate: [authGuard]
+				canActivate: [authGuard, notAdminGuard]
 			},
 			{
 				path: 'payment/cancel',
 				loadComponent: () => import('./features/payment/payment-cancel-page.component').then((m) => m.PaymentCancelPageComponent),
-				canActivate: [authGuard]
+				canActivate: [authGuard, notAdminGuard]
 			}
 		]
 	},

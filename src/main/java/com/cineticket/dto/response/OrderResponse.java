@@ -12,6 +12,9 @@ public class OrderResponse {
     private Long userId;
     private String username;
     private BigDecimal totalPrice;
+    private BigDecimal originalTotalPrice;
+    private Integer discountPercentage;
+    private String discountLabel;
     private LocalDateTime orderDate;
     private Order.OrderStatus status;
     private String paymentIntentId;
@@ -48,6 +51,15 @@ public class OrderResponse {
 
     public BigDecimal getTotalPrice() { return totalPrice; }
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
+
+    public BigDecimal getOriginalTotalPrice() { return originalTotalPrice; }
+    public void setOriginalTotalPrice(BigDecimal originalTotalPrice) { this.originalTotalPrice = originalTotalPrice; }
+
+    public Integer getDiscountPercentage() { return discountPercentage; }
+    public void setDiscountPercentage(Integer discountPercentage) { this.discountPercentage = discountPercentage; }
+
+    public String getDiscountLabel() { return discountLabel; }
+    public void setDiscountLabel(String discountLabel) { this.discountLabel = discountLabel; }
 
     public LocalDateTime getOrderDate() { return orderDate; }
     public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }

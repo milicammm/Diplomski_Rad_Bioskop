@@ -3,7 +3,7 @@
       <section class="profile-hero glass-panel">
         <div class="profile-hero__copy">
           <p class="profile-hero__eyebrow">My account</p>
-          <h1>Profile & tickets</h1>
+          <h1>Profile &amp; tickets</h1>
           <p class="profile-hero__subtitle">
             Review your personal details and all previously purchased tickets in one place.
           </p>
@@ -147,6 +147,31 @@
                     </div>
                   }
                 </div>
+
+                @if (order.status === 'CONFIRMED') {
+                  <div class="order-actions">
+                    <button 
+                      mat-stroked-button 
+                      color="primary"
+                      (click)="downloadTicket(order.id)"
+                      [disabled]="downloadingTicketId() === order.id">
+                      @if (downloadingTicketId() === order.id) {
+                        <mat-spinner diameter="20"></mat-spinner>
+                      }
+                      @if (downloadingTicketId() !== order.id) {
+                        <mat-icon>download</mat-icon>
+                      }
+                      Download confirmation PDF
+                    </button>
+                    <button 
+                      mat-stroked-button 
+                      color="accent"
+                      (click)="resendTicketEmail(order.id)">
+                      <mat-icon>email</mat-icon>
+                      Email me a copy
+                    </button>
+                  </div>
+                }
               </article>
             }
           </div>

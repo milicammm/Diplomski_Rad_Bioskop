@@ -17,6 +17,7 @@ import { AdminHallRequest, AdminMovieRequest, AdminScreeningRequest, AdminSeatRe
 import { MovieResponse, PageResponse } from '../../core/models/movie.models';
 import { AdminPaymentTransactionResponse, HallResponse, OrderResponse, ScreeningResponse, SeatResponse } from '../../core/models/booking.models';
 import { RegisterRequest, UserResponse } from '../../core/models/auth.models';
+import { buildAdminDashboardAnalytics } from './admin-dashboard.analytics';
 
 @Component({
   selector: 'app-admin-dashboard-page',
@@ -50,6 +51,7 @@ export class AdminDashboardPageComponent implements OnInit {
   protected readonly screeningSaving = signal(false);
   protected readonly userSaving = signal(false);
   protected readonly paymentStatusUpdating = signal<number | null>(null);
+  protected readonly paymentDeleting = signal<number | null>(null);
 
   protected readonly movies = signal<MovieResponse[]>([]);
   protected readonly screenings = signal<ScreeningResponse[]>([]);
@@ -69,6 +71,11 @@ export class AdminDashboardPageComponent implements OnInit {
   protected readonly successfulPaymentsCount = computed(() => this.paymentTransactions().filter((payment) => payment.paymentStatus === 'SUCCEEDED').length);
   protected readonly totalHallCapacity = computed(() => this.halls().reduce((sum, hall) => sum + (hall.capacity || 0), 0));
   protected readonly latestOrders = computed(() => [...this.orders()].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()).slice(0, 10));
+  protected readonly analytics = computed(() => buildAdminDashboardAnalytics({
+    orders: this.orders(),
+    screenings: this.screenings(),
+    movies: this.movies()
+  }));
   protected readonly filteredSeats = computed(() => {
     const filter = this.seatHallFilter();
     if (!filter) {
@@ -193,9 +200,9 @@ export class AdminDashboardPageComponent implements OnInit {
 
           if (failedSections.length > 0) {
             if (authErrorDetected) {
-              this.errorMessage.set(`Neki podaci nisu ucitani (${failedSections.join(', ')}). Admin sesija nije vazeca, odjavi se i prijavi ponovo.`);
+              this.errorMessage.set(`Some data failed to load (${failedSections.join(', ')}). Admin session is no longer valid, please log out and log back in.`);
             } else {
-              this.errorMessage.set(`Neki podaci nisu ucitani (${failedSections.join(', ')}). Proveri da li je backend restartovan.`);
+              this.errorMessage.set(`Some data failed to load (${failedSections.join(', ')}). Check if the backend is running.`);
             }
           }
 
@@ -267,8 +274,8 @@ export class AdminDashboardPageComponent implements OnInit {
         this.resetMovieForm();
         this.loadDashboard();
       },
-      error: () => {
-        this.snackBar.open('Unable to save movie.', 'Close', { duration: 3200 });
+      error: (error) => {
+        this.snackBar.open(this.resolveApiError(error, 'Unable to save movie.'), 'Close', { duration: 3500 });
       },
       complete: () => {
         this.movieSaving.set(false);
@@ -376,7 +383,7 @@ export class AdminDashboardPageComponent implements OnInit {
 
   protected submitScreening() {
     if (this.halls().length === 0 || this.movies().length === 0) {
-      this.snackBar.open('Prvo dodaj bar jedan film i jednu salu.', 'Close', { duration: 3200 });
+      this.snackBar.open('First add at least one movie and one theater.', 'Close', { duration: 3200 });
       return;
     }
 
@@ -398,7 +405,7 @@ export class AdminDashboardPageComponent implements OnInit {
         this.resetScreeningForm();
         this.loadDashboard();
       },
-      error: () => this.snackBar.open('Unable to save screening.', 'Close', { duration: 3200 }),
+      error: (error) => this.snackBar.open(this.resolveApiError(error, 'Unable to save screening.'), 'Close', { duration: 3500 }),
       complete: () => {
         this.screeningSaving.set(false);
       }
@@ -416,7 +423,7 @@ export class AdminDashboardPageComponent implements OnInit {
 
   protected submitSeat() {
     if (this.halls().length === 0) {
-      this.snackBar.open('Prvo dodaj salu pa onda sedista.', 'Close', { duration: 3200 });
+      this.snackBar.open('First add a theater before adding seats.', 'Close', { duration: 3200 });
       return;
     }
 
@@ -436,7 +443,7 @@ export class AdminDashboardPageComponent implements OnInit {
           this.resetSeatForm();
           this.loadDashboard();
         },
-        error: () => this.snackBar.open('Unable to save seat.', 'Close', { duration: 3200 }),
+        error: (error) => this.snackBar.open(this.resolveApiError(error, 'Unable to save seat.'), 'Close', { duration: 3500 }),
         complete: () => {
           this.seatSaving.set(false);
         }
@@ -527,9 +534,16 @@ export class AdminDashboardPageComponent implements OnInit {
           this.loadDashboard();
         },
         error: (error) => {
-          const message = error instanceof HttpErrorResponse && error.error?.message
-            ? error.error.message
-            : 'Unable to save user.';
+          let message = 'Unable to save user.';
+          
+          if (error instanceof HttpErrorResponse && error.error?.message) {
+            message = error.error.message;
+          } else if (error instanceof HttpErrorResponse && error.status === 409) {
+            message = error.error?.message?.includes('email')
+              ? 'This email is already registered.'
+              : 'This username is already taken.';
+          }
+          
           this.snackBar.open(message, 'Close', { duration: 4200 });
         }
       });
@@ -546,6 +560,27 @@ export class AdminDashboardPageComponent implements OnInit {
         },
         error: () => this.snackBar.open('Unable to update payment status.', 'Close', { duration: 3200 }),
         complete: () => this.paymentStatusUpdating.set(null)
+      });
+  }
+
+  protected deletePaymentRecord(paymentId: number) {
+    if (!confirm(`Delete payment record #${paymentId}? This only removes the local record, it does not refund the customer.`)) {
+      return;
+    }
+
+    this.paymentDeleting.set(paymentId);
+
+    this.bookingService.deletePayment(paymentId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.paymentDeleting.set(null))
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open(`Payment record #${paymentId} deleted.`, 'Close', { duration: 3200 });
+          this.loadDashboard();
+        },
+        error: () => this.snackBar.open('Unable to delete payment record.', 'Close', { duration: 3200 })
       });
   }
 
@@ -614,15 +649,15 @@ export class AdminDashboardPageComponent implements OnInit {
     }
 
     if (error.status === 0) {
-      return 'Backend nije dostupan. Proveri da li je server pokrenut.';
+      return 'Backend is not available. Check if the server is running.';
     }
 
     if (error.status === 401) {
-      return 'Sesija je istekla. Uloguj se ponovo.';
+      return 'Your session has expired. Please log in again.';
     }
 
     if (error.status === 403) {
-      return 'Nemate admin dozvolu za ovu akciju. Uloguj se kao admin nalog.';
+      return 'You do not have admin privileges for this action. Please log in as an admin user.';
     }
 
     const body = error.error as { message?: string; errors?: string[] } | null;
@@ -635,7 +670,7 @@ export class AdminDashboardPageComponent implements OnInit {
     if (message) {
       const lower = message.toLowerCase();
       if (lower.includes('duplicate') || lower.includes('unique') || lower.includes('constraint')) {
-        return 'Sala sa tim nazivom vec postoji. Promeni naziv sale.';
+        return 'An item with those details already exists. Please use different values.';
       }
 
       return message;

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-about-page',
+  imports: [],
   template: `
     <section class="about-page">
       <header class="hero">
@@ -9,8 +10,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
           <p class="hero__eyebrow">About CineTicket</p>
           <h1>Premium cinema booking, built for people who value speed and simplicity.</h1>
           <p>
-            CineTicket helps movie lovers discover screenings faster, reserve the best seats without friction, and enjoy a
-            smoother journey from browsing to checkout.
+            CineTicket helps movie lovers discover screenings faster, reserve the best seats without friction, and enjoy a smoother journey from browsing to checkout.
           </p>
         </div>
 
@@ -34,30 +34,27 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         <article class="panel">
           <h2>What CineTicket gives you</h2>
           <ul>
-            <li>A polished movie browsing experience with clear screening options</li>
-            <li>Fast seat selection with live availability in mind</li>
-            <li>Secure user accounts and a clean checkout flow</li>
-            <li>Dedicated admin tools for day-to-day cinema operations</li>
+            @for (item of aboutItems.whatYouGet; track item) {
+              <li>{{ item }}</li>
+            }
           </ul>
         </article>
 
         <article class="panel">
           <h2>Our approach</h2>
           <ul>
-            <li>Keep the experience quick, intuitive, and visually calm</li>
-            <li>Reduce friction between discovery, reservation, and payment</li>
-            <li>Make admin work easier with one dashboard for all key actions</li>
-            <li>Present cinema content in a clean, premium interface</li>
+            @for (item of aboutItems.ourApproach; track item) {
+              <li>{{ item }}</li>
+            }
           </ul>
         </article>
 
         <article class="panel">
           <h2>Why customers remember it</h2>
           <ul>
-            <li>It feels fast, consistent, and easy to trust</li>
-            <li>It gives cinema teams control without overwhelming them</li>
-            <li>It scales better when there are many movies, screenings, and users</li>
-            <li>It is made to feel premium on both desktop and mobile</li>
+            @for (item of aboutItems.whyCustomersRemember; track item) {
+              <li>{{ item }}</li>
+            }
           </ul>
         </article>
 
@@ -68,8 +65,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
               <h2>Born from the idea that cinema booking should feel effortless.</h2>
             </div>
             <p>
-              CineTicket was created to bring clarity into the booking process: fewer clicks, better structure, and a
-              more elegant experience for everyone who visits the cinema or manages it.
+              CineTicket was created to bring clarity into the booking process: fewer clicks, better structure, and a more elegant experience for everyone who visits the cinema or manages it.
             </p>
           </div>
         </article>
@@ -280,4 +276,25 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AboutPageComponent {}
+export class AboutPageComponent {
+  protected readonly aboutItems = {
+    whatYouGet: [
+      'A polished movie browsing experience with clear screening options',
+      'Fast seat selection with live availability in mind',
+      'Secure user accounts and a clean checkout flow',
+      'Dedicated admin tools for day-to-day cinema operations'
+    ],
+    ourApproach: [
+      'Keep the experience quick, intuitive, and visually calm',
+      'Reduce friction between discovery, reservation, and payment',
+      'Make admin work easier with one dashboard for all key actions',
+      'Present cinema content in a clean, premium interface'
+    ],
+    whyCustomersRemember: [
+      'It feels fast, consistent, and easy to trust',
+      'It gives cinema teams control without overwhelming them',
+      'It scales better when there are many movies, screenings, and users',
+      'It is made to feel premium on both desktop and mobile'
+    ]
+  };
+}

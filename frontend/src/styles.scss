@@ -202,4 +202,25 @@ h4 {
   right: 1.4rem;
 }
 
+.movies-filter-panel.mat-mdc-select-panel {
+  background: rgba(15, 23, 42, 0.98) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(20px);
+}
+
+.movies-filter-panel.mat-mdc-select-panel .mat-mdc-option {
+  color: #e2e8f0 !important;
+}
+
+.movies-filter-panel.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected,
+.movies-filter-panel.mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background: rgba(59, 130, 246, 0.18) !important;
+}
+
+.movies-filter-panel.mat-mdc-select-panel .mdc-list-item__primary-text {
+  color: #e2e8f0 !important;
+}
+
 }

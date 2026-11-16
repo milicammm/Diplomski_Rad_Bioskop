@@ -12,7 +12,6 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-edit-profile-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -41,7 +40,7 @@ export class EditProfileDialogComponent {
     email: ['', [Validators.required, Validators.email]],
     phoneNumber: [''],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    username: [''] // Username se ne može promeniti, al trebam ga za payload
+    username: [''] 
   });
 
   ngOnInit() {
@@ -54,7 +53,6 @@ export class EditProfileDialogComponent {
         phoneNumber: currentUser.phoneNumber || '',
         username: currentUser.username
       });
-      // Username se ne može menjati
       this.form.get('username')?.disable();
     }
   }
@@ -79,7 +77,7 @@ export class EditProfileDialogComponent {
     this.authService.updateProfile(payload).subscribe({
       next: (response: UserResponse) => {
         this.isSubmitting.set(false);
-        this.snackBar.open('Profile updated successfully', 'Close', {
+        this.snackBar.open('Profile updated successfully!', 'Close', {
           duration: 3000,
           panelClass: ['success-snackbar']
         });
@@ -87,7 +85,18 @@ export class EditProfileDialogComponent {
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        const errorMessage = error?.error?.message || 'Failed to update profile. Please try again.';
+        let errorMessage = 'Failed to update profile. Please try again.';
+
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 409) {
+          errorMessage = error.error?.message?.includes('email')
+            ? 'This email is already in use. Please use a different email.'
+            : 'This username is already taken. Please choose a different one.';
+        } else if (error.status === 401) {
+          errorMessage = 'Your session has expired. Please log in again.';
+        }
+
         this.snackBar.open(errorMessage, 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar']

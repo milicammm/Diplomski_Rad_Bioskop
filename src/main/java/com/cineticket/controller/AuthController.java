@@ -3,6 +3,7 @@ package com.cineticket.controller;
 import com.cineticket.dto.request.LoginRequest;
 import com.cineticket.dto.request.RegisterRequest;
 import com.cineticket.dto.response.LoginResponse;
+import com.cineticket.dto.response.MessageResponse;
 import com.cineticket.dto.response.UserResponse;
 import com.cineticket.service.AuthService;
 import jakarta.validation.Valid;
@@ -40,5 +41,14 @@ public class AuthController {
         String token = refreshToken.replace("Bearer ", "");
         LoginResponse response = authService.refreshToken(token);
         return ResponseEntity.ok(response);
+    }
+
+    //POST /api/auth/logout
+    @PostMapping("/logout")
+    public ResponseEntity<MessageResponse> logout(@RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken != null) {
+            authService.logout(refreshToken.replace("Bearer ", ""));
+        }
+        return ResponseEntity.ok(MessageResponse.success("Logged out"));
     }
 }

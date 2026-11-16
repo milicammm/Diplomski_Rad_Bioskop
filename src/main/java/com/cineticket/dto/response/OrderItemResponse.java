@@ -13,6 +13,7 @@ public class OrderItemResponse {
     private String seatInfo;
     private Integer quantity;
     private BigDecimal price;
+    private BigDecimal originalPrice;
     private BigDecimal subtotal;
 
     public OrderItemResponse() {
@@ -58,6 +59,9 @@ public class OrderItemResponse {
 
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
+
+    public BigDecimal getOriginalPrice() { return originalPrice; }
+    public void setOriginalPrice(BigDecimal originalPrice) { this.originalPrice = originalPrice; }
 
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }

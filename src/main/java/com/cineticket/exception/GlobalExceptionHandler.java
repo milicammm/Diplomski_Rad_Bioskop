@@ -167,7 +167,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             LocalDateTime.now(),
             HttpStatus.BAD_REQUEST.value(),
-            "Validation Error",
+            "Bad Request",
             "Input validation failed",
             request.getDescription(false).replace("uri=", ""),
             errors
@@ -188,7 +188,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             LocalDateTime.now(),
             HttpStatus.BAD_REQUEST.value(),
-            "Validation Error",
+            "Bad Request",
             "Constraint violation",
             request.getDescription(false).replace("uri=", ""),
             errors
@@ -222,7 +222,7 @@ public class GlobalExceptionHandler {
             LocalDateTime.now(),
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "Internal Server Error",
-            "An unexpected error occurred: " + ex.getMessage(),
+            "Internal server error occurred",
             request.getDescription(false).replace("uri=", "")
         );
 

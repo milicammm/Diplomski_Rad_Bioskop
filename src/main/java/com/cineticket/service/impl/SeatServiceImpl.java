@@ -6,6 +6,7 @@ import com.cineticket.entity.Hall;
 import com.cineticket.entity.Seat;
 import com.cineticket.entity.Screening;
 import com.cineticket.exception.ResourceNotFoundException;
+import com.cineticket.exception.InsufficientSeatsException;
 import com.cineticket.exception.SeatAlreadyReservedException;
 import com.cineticket.repository.HallRepository;
 import com.cineticket.repository.OrderItemRepository;
@@ -43,6 +44,14 @@ public class SeatServiceImpl implements SeatService {
     public SeatResponse createSeat(SeatRequest request) {
         Hall hall = hallRepository.findById(request.getHallId())
             .orElseThrow(() -> new ResourceNotFoundException("Hall", "id", request.getHallId()));
+
+        int currentSeatCount = seatRepository.findAllByHallId(hall.getId()).size();
+        if (currentSeatCount >= hall.getCapacity()) {
+            throw new InsufficientSeatsException(
+                String.format("Hall '%s' is already full. Capacity: %d, Current seats: %d",
+                    hall.getName(), hall.getCapacity(), currentSeatCount)
+            );
+        }
 
         if (seatRepository.existsByHallAndRowNumberAndSeatNumber(
                 hall, request.getRowNumber(), request.getSeatNumber())) {

@@ -19,7 +19,9 @@ public interface OrderService {
     OrderResponse updateOrderStatus(Long id, Order.OrderStatus status);
     
     void cancelOrder(Long id);
-    
+
+    void expireStalePendingOrders();
+
     Order findOrderEntityById(Long id);
     
     Order findOrderByPaymentIntentId(String paymentIntentId);

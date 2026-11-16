@@ -14,12 +14,15 @@ import com.cineticket.repository.PaymentRepository;
 import com.cineticket.repository.ScreeningRepository;
 import com.cineticket.service.OrderService;
 import com.cineticket.service.PaymentService;
+import com.cineticket.service.TicketService;
 import com.stripe.Stripe;
+import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -34,7 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,11 +52,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
+    // Stripe requires checkout session expiration to be at least 30 minutes after creation.
+    private static final long STRIPE_SESSION_VALIDITY_MINUTES = 30;
+
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
     private final OrderRepository orderRepository;
     private final ScreeningRepository screeningRepository;
     private final ModelMapper modelMapper;
+    private final TicketService ticketService;
 
     @Value("${app.stripe.api.key}")
     private String stripeApiKey;
@@ -69,12 +78,14 @@ public class PaymentServiceImpl implements PaymentService {
                               OrderService orderService,
                               OrderRepository orderRepository,
                               ScreeningRepository screeningRepository,
-                              ModelMapper modelMapper) {
+                              ModelMapper modelMapper,
+                              TicketService ticketService) {
         this.paymentRepository = paymentRepository;
         this.orderService = orderService;
         this.orderRepository = orderRepository;
         this.screeningRepository = screeningRepository;
         this.modelMapper = modelMapper;
+        this.ticketService = ticketService;
     }
 
     @PostConstruct
@@ -98,12 +109,27 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentException("Cancelled order cannot be paid");
         }
 
+        if (order.getStatus() == Order.OrderStatus.EXPIRED) {
+            throw new PaymentException("Order reservation has expired; please book the seats again");
+        }
+
         if (order.getPayment() != null && order.getPayment().getStatus() == Payment.PaymentStatus.SUCCEEDED) {
             throw new PaymentException("Order is already paid");
         }
 
+        if (order.getStripeSessionId() != null
+                && order.getStripeSessionUrl() != null
+                && order.getStripeSessionExpiresAt() != null
+                && order.getStripeSessionExpiresAt().isAfter(LocalDateTime.now())) {
+            log.info("Reusing active Stripe checkout session for orderId={}, sessionId={}", order.getId(), order.getStripeSessionId());
+            return new StripeCheckoutResponse(order.getStripeSessionId(), order.getStripeSessionUrl());
+        }
+
+        long sessionExpiresAtEpochSeconds = Instant.now().plus(STRIPE_SESSION_VALIDITY_MINUTES, ChronoUnit.MINUTES).getEpochSecond();
+
         SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
             .setMode(SessionCreateParams.Mode.PAYMENT)
+            .setExpiresAt(sessionExpiresAtEpochSeconds)
             .setSuccessUrl(stripeSuccessUrl + "?session_id={CHECKOUT_SESSION_ID}&orderId=" + order.getId())
             .setCancelUrl(stripeCancelUrl + "?orderId=" + order.getId())
             .setClientReferenceId(String.valueOf(order.getId()))
@@ -139,6 +165,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
             Session session = Session.create(paramsBuilder.build());
+
+            order.setStripeSessionId(session.getId());
+            order.setStripeSessionUrl(session.getUrl());
+            order.setStripeSessionExpiresAt(LocalDateTime.now().plusMinutes(STRIPE_SESSION_VALIDITY_MINUTES));
+            orderRepository.save(order);
+
             return new StripeCheckoutResponse(session.getId(), session.getUrl());
         } catch (StripeException ex) {
             log.error("Stripe error while creating checkout session: {} - {}", ex.getStatusCode(), ex.getMessage(), ex);
@@ -319,6 +351,13 @@ public class PaymentServiceImpl implements PaymentService {
             log.warn("checkout.session.completed: order not found id={}", maybeOrderId.get());
             return;
         }
+        if (order.getStatus() == Order.OrderStatus.EXPIRED) {
+            // The reservation window elapsed before Stripe confirmed the payment; the seats may
+            // already have been resold, so this order cannot be silently confirmed.
+            log.warn("checkout.session.completed for already-expired order id={}, session={}", order.getId(), session.getId());
+            return;
+        }
+
         order.setPaymentIntentId(paymentIntentId);
 
         Optional<Payment> existingPayment = paymentRepository.findByPaymentIntentId(paymentIntentId);
@@ -353,6 +392,15 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.save(payment);
         log.info("Payment saved: id={}, orderId={}, status={}", payment.getId(), order.getId(), payment.getStatus());
+        
+        // Generate and send ticket to customer
+        try {
+            ticketService.generateAndSendTicket(order);
+            log.info("Ticket generated and sent for order ID: {}", order.getId());
+        } catch (Exception e) {
+            log.error("Error generating ticket for order ID: {}", order.getId(), e);
+            // Continue without throwing - ticket generation failure shouldn't block payment confirmation
+        }
     }
 
     private void handlePaymentFailed(Event event) {
@@ -424,9 +472,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     private <T> T deserializeStripeObject(Event event, Class<T> clazz) {
         EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
-        return deserializer.getObject()
-            .map(clazz::cast)
-            .orElseThrow(() -> new PaymentException("Unable to deserialize Stripe event: " + event.getType()));
+        Optional<StripeObject> maybeObject = deserializer.getObject();
+        if (maybeObject.isPresent()) {
+            return clazz.cast(maybeObject.get());
+        }
+
+        try {
+            // getObject() returns empty when the event's Stripe API version doesn't exactly match
+            // the version pinned into this SDK release; deserializeUnsafe() ignores that mismatch.
+            return clazz.cast(deserializer.deserializeUnsafe());
+        } catch (EventDataObjectDeserializationException ex) {
+            throw new PaymentException("Unable to deserialize Stripe event: " + event.getType(), ex);
+        }
     }
 
     private AdminPaymentTransactionResponse mapToAdminTransaction(Payment payment) {

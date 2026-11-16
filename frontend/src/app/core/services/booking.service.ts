@@ -55,6 +55,10 @@ export class BookingService {
     return this.http.get<OrderResponse>(`${API_BASE_URL}/api/orders/${orderId}`);
   }
 
+  cancelOrder(orderId: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/api/orders/${orderId}`);
+  }
+
   createCheckoutSession(orderId: number): Observable<StripeCheckoutResponse> {
     return this.http.post<StripeCheckoutResponse>(`${API_BASE_URL}/api/payments/checkout-session/${orderId}`, {});
   }

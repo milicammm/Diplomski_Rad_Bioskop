@@ -6,7 +6,6 @@ import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-payment-cancel-page',
-  standalone: true,
   imports: [CommonModule, RouterLink, MatButtonModule, MatCardModule],
   template: `
     <section class="state-page">

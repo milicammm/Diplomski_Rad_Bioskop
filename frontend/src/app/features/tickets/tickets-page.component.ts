@@ -12,8 +12,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MoviesService } from '../../core/services/movies.service';
 import { MovieResponse } from '../../core/models/movie.models';
 import { BookingService } from '../../core/services/booking.service';
+import { RecommendationService } from '../../core/services/recommendation.service';
 import { OrderResponse, ScreeningResponse, SeatResponse } from '../../core/models/booking.models';
 import { AuthService } from '../../core/services/auth.service';
+import { evaluateDeal } from '../../core/services/deal-calculator';
 
 @Component({
   selector: 'app-tickets-page',
@@ -34,6 +36,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class TicketsPageComponent implements OnInit {
   private readonly moviesService = inject(MoviesService);
   private readonly bookingService = inject(BookingService);
+  private readonly recommendationService = inject(RecommendationService);
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -52,6 +55,7 @@ export class TicketsPageComponent implements OnInit {
   protected readonly loadingOrders = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly orders = signal<OrderResponse[]>([]);
+  protected readonly cancelingOrderId = signal<number | null>(null);
   protected readonly seatTypeFilter = signal<'ALL' | 'VIP' | 'REGULAR'>('ALL');
   protected readonly seatTypeFilters = [
     { value: 'ALL' as const, label: 'All seats' },
@@ -100,47 +104,64 @@ export class TicketsPageComponent implements OnInit {
       return leftRow - rightRow;
     });
 
-    const groups = new Map<string, { rowKey: string; rowLabel: string; rowRank: number; seats: SeatResponse[] }>();
+    const groups = new Map<string, { rowKey: string; rowLabel: string; rowRank: number; seats: SeatResponse[]; seatGroups: SeatResponse[][] }>();
 
     for (const seat of sortedSeats) {
       const rowLabel = seat.rowNumber.trim().toUpperCase() || 'UNKNOWN';
       const rowKey = rowLabel;
       const rowRank = this.rowLabelToRank(rowLabel);
-      const group = groups.get(rowKey) || { rowKey, rowLabel, rowRank, seats: [] };
+      const group = groups.get(rowKey) || { rowKey, rowLabel, rowRank, seats: [], seatGroups: [[], []] };
       group.seats.push(seat);
       groups.set(rowKey, group);
     }
 
-    return [...groups.values()].sort((left, right) => left.rowRank - right.rowRank);
-  });
+    const rows = [...groups.values()].sort((left, right) => left.rowRank - right.rowRank);
 
-  protected readonly recommendedSeats = computed(() => {
-    const seats = this.visibleSeats();
-    if (seats.length === 0) {
-      return [];
+    // For visual aisles, split seats per row into two groups (left/right) so template can render a gap.
+    for (const row of rows) {
+      const seatsCopy = [...row.seats];
+      const mid = Math.ceil(seatsCopy.length / 2);
+      row.seatGroups = [seatsCopy.slice(0, mid), seatsCopy.slice(mid)];
     }
 
-    const preference = this.buildSeatPreferenceProfile();
-    const rowRanks = this.uniqueRowRanks(seats);
-    const centerRowRank = rowRanks[Math.floor(rowRanks.length / 2)] ?? null;
-    const seatNumbers = [...new Set(seats.map((seat) => seat.seatNumber))].sort((a, b) => a - b);
-    const centerSeatNumber = seatNumbers[Math.floor(seatNumbers.length / 2)] ?? null;
-
-    return [...seats]
-      .sort((left, right) => this.scoreSeat(right, preference, centerRowRank, centerSeatNumber) - this.scoreSeat(left, preference, centerRowRank, centerSeatNumber))
-      .slice(0, 8);
+    return rows;
   });
+
+  protected readonly recommendedSeats = signal<SeatResponse[]>([]);
 
   protected readonly recommendedSeatIds = computed(() => new Set(this.recommendedSeats().map((seat) => seat.id)));
 
+  protected readonly hasBookingHistory = computed(() =>
+    this.orders().some((order) => order.status !== 'CANCELLED' && order.orderItems.length > 0)
+  );
+
+  protected readonly selectedScreening = computed(() => {
+    const screeningId = this.selectedScreeningId();
+    return this.screenings().find((screening) => screening.id === screeningId) ?? null;
+  });
+
+  protected readonly selectedSeats = computed(() => {
+    const ids = new Set(this.selectedSeatIds());
+    return this.seats().filter((seat) => ids.has(seat.id));
+  });
+
+  protected readonly selectedSeatLabels = computed(() =>
+    [...this.selectedSeats()]
+      .sort((a, b) => (a.rowNumber === b.rowNumber ? a.seatNumber - b.seatNumber : a.rowNumber.localeCompare(b.rowNumber)))
+      .map((seat) => this.seatLabel(seat))
+      .join(', ')
+  );
+
+  protected readonly activeDeal = computed(() => evaluateDeal(this.selectedSeats(), this.selectedScreening()));
+
   protected readonly recommendationTitle = computed(() => {
-    return this.buildSeatPreferenceProfile() ? 'Recommended for you' : 'Best seats in this hall';
+    return this.hasBookingHistory() ? 'Recommended for you' : 'Best seats in this hall';
   });
 
   protected readonly recommendationSubtitle = computed(() => {
-    return this.buildSeatPreferenceProfile()
-      ? 'Personalized from your previous bookings and the current hall layout.'
-      : 'No booking history yet, so this is based on the center of the current hall.';
+    return this.hasBookingHistory()
+      ? 'Personalized from your previous bookings and how other guests book this hall.'
+      : 'No booking history yet, so this is based on the hall center and how other guests book it.';
   });
 
   ngOnInit() {
@@ -179,6 +200,7 @@ export class TicketsPageComponent implements OnInit {
     this.selectedScreeningId.set(null);
     this.selectedSeatIds.set([]);
     this.seats.set([]);
+    this.recommendedSeats.set([]);
     this.selectedScreeningPrice.set(0);
 
     if (this.selectedMovieId()) {
@@ -193,6 +215,7 @@ export class TicketsPageComponent implements OnInit {
     this.selectedScreeningPrice.set(Number(screening.price) || 0);
     this.selectedSeatIds.set([]);
     this.loadSeats(screening.id);
+    this.loadSeatRecommendations(screening.id);
   }
 
   protected toggleSeat(seatId: number) {
@@ -226,6 +249,12 @@ export class TicketsPageComponent implements OnInit {
   }
 
   protected estimatedTotal() {
+    const subtotal = this.selectedScreeningPrice() * this.selectedSeatIds().length;
+    const deal = this.activeDeal();
+    return deal ? subtotal * (100 - deal.percentage) / 100 : subtotal;
+  }
+
+  protected estimatedSubtotal() {
     return this.selectedScreeningPrice() * this.selectedSeatIds().length;
   }
 
@@ -258,6 +287,34 @@ export class TicketsPageComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  }
+
+  protected cancelOrder(order: OrderResponse) {
+    if (order.status !== 'PENDING' || this.cancelingOrderId() !== null) {
+      return;
+    }
+
+    if (!confirm(`Cancel order #${order.id}? This cannot be undone.`)) {
+      return;
+    }
+
+    this.cancelingOrderId.set(order.id);
+    this.errorMessage.set(null);
+
+    this.bookingService.cancelOrder(order.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadUserOrders();
+        },
+        error: (error) => {
+          this.errorMessage.set(error.error?.message || 'Unable to cancel order. Please try again.');
+          this.cancelingOrderId.set(null);
+        },
+        complete: () => {
+          this.cancelingOrderId.set(null);
+        }
+      });
   }
 
   protected formatOrderDate(dateIso: string) {
@@ -395,38 +452,15 @@ export class TicketsPageComponent implements OnInit {
       });
   }
 
-  private buildSeatPreferenceProfile() {
-    const preferredOrders = this.orders().filter((order) => order.status !== 'CANCELLED');
-    const seatObservations = preferredOrders.flatMap((order) =>
-      order.orderItems
-        .map((item) => this.parseSeatInfo(item.seatInfo))
-        .filter((value): value is { rowRank: number; seatNumber: number } => value !== null)
-    );
+  private loadSeatRecommendations(screeningId: number) {
+    const user = this.authService.currentUser();
 
-    if (seatObservations.length === 0) {
-      return null;
-    }
-
-    return {
-      preferredRowRank: this.mostCommonValue(seatObservations.map((entry) => entry.rowRank)),
-      preferredSeatNumber: this.mostCommonValue(seatObservations.map((entry) => entry.seatNumber))
-    };
-  }
-
-  private parseSeatInfo(seatInfo: string | null | undefined) {
-    if (!seatInfo) {
-      return null;
-    }
-
-    const [rowLabel, seatNumberRaw] = seatInfo.split('-');
-    const rowRank = this.rowLabelToRank(rowLabel);
-    const seatNumber = Number(seatNumberRaw);
-
-    if (!Number.isFinite(rowRank) || !Number.isFinite(seatNumber) || seatNumber <= 0) {
-      return null;
-    }
-
-    return { rowRank, seatNumber };
+    this.recommendationService.getRecommendedSeats(screeningId, user ? user.id : null)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (seats) => this.recommendedSeats.set(seats),
+        error: () => this.recommendedSeats.set([])
+      });
   }
 
   private rowLabelToRank(rowLabel: string) {
@@ -443,59 +477,5 @@ export class TicketsPageComponent implements OnInit {
 
       return rank * 26 + (charCode - 64);
     }, 0);
-  }
-
-  private uniqueRowRanks(seats: SeatResponse[]) {
-    return [...new Set(seats.map((seat) => this.rowLabelToRank(seat.rowNumber)).filter((rank) => Number.isFinite(rank)))].sort((a, b) => a - b);
-  }
-
-  private scoreSeat(
-    seat: SeatResponse,
-    preference: { preferredRowRank: number | null; preferredSeatNumber: number | null } | null,
-    centerRowRank: number | null,
-    centerSeatNumber: number | null
-  ) {
-    const rowRank = this.rowLabelToRank(seat.rowNumber);
-    let score = 0;
-
-    if (preference?.preferredRowRank) {
-      score -= Math.abs(rowRank - preference.preferredRowRank) * 12;
-    } else if (centerRowRank) {
-      score -= Math.abs(rowRank - centerRowRank) * 8;
-    }
-
-    if (preference?.preferredSeatNumber) {
-      score -= Math.abs(seat.seatNumber - preference.preferredSeatNumber) * 4;
-    } else if (centerSeatNumber) {
-      score -= Math.abs(seat.seatNumber - centerSeatNumber) * 2;
-    }
-
-    if (seat.type === this.seatTypeFilter()) {
-      score += 1;
-    }
-
-    return score;
-  }
-
-  private mostCommonValue(values: number[]) {
-    if (values.length === 0) {
-      return null;
-    }
-
-    const counts = new Map<number, number>();
-    for (const value of values) {
-      counts.set(value, (counts.get(value) || 0) + 1);
-    }
-
-    let bestValue: number | null = null;
-    let bestCount = 0;
-    counts.forEach((count, value) => {
-      if (count > bestCount) {
-        bestValue = value;
-        bestCount = count;
-      }
-    });
-
-    return bestValue;
   }
 }

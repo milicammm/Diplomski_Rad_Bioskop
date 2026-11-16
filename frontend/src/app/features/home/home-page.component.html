@@ -15,11 +15,11 @@
     <p class="hero__eyebrow">Now Streaming In Cinema</p>
     <h1 class="hero__title">Book your next movie night in seconds.</h1>
     <p class="hero__subtitle">
-      Discover real movies from the live database, check duration and genre instantly, and reserve your seats in one smooth flow.
+      Discover movies , check duration and genre instantly, and reserve your seats in one smooth flow.
     </p>
 
     <div class="hero__actions">
-      <a mat-raised-button color="primary" routerLink="/movies">Browse Movies</a>
+      <a mat-raised-button color="primary" routerLink="/movies">Book Now</a>
       <a mat-stroked-button routerLink="/about">About CineTicket</a>
     </div>
   </div>
@@ -39,7 +39,7 @@
   @if (loading()) {
     <div class="state state--loading">
       <mat-spinner diameter="38" />
-      <p>Loading movies...</p>
+      <p>Loading...</p>
     </div>
   } @else if (error()) {
     <div class="state state--error">
@@ -134,8 +134,9 @@
 
 <section class="offers-section">
   <div class="offers-section__header">
-    <p class="offers-section__eyebrow">Limited Time Offers</p>
+    <p class="offers-section__eyebrow">Automatic, No Code Needed</p>
     <h2>Exclusive Deals</h2>
+    <p class="offers-section__subtitle">These discounts apply automatically at checkout the moment your booking qualifies.</p>
   </div>
 
   <div class="offers-grid">
@@ -143,12 +144,8 @@
       <div class="offer-card__badge">SAVE 15%</div>
       <div class="offer-card__content">
         <h3>Movie Night Combo</h3>
-        <p>Book any screening + VIP seat upgrade</p>
-        <div class="offer-card__price">
-          <span class="offer-card__original">$28.99</span>
-          <span class="offer-card__discounted">$24.99</span>
-        </div>
-        <button mat-raised-button color="primary" routerLink="/movies" class="offer-card__cta">Shop Now</button>
+        <p>Add at least one VIP seat to your order and get 15% off your total — applied automatically.</p>
+        <a mat-raised-button color="primary" routerLink="/tickets" class="offer-card__cta">Choose a VIP Seat</a>
       </div>
     </div>
 
@@ -156,25 +153,17 @@
       <div class="offer-card__badge">SAVE 20%</div>
       <div class="offer-card__content">
         <h3>Group Booking</h3>
-        <p>Reserve 4+ tickets and unlock group discounts</p>
-        <div class="offer-card__price">
-          <span class="offer-card__original">$53.96</span>
-          <span class="offer-card__discounted">$43.20</span>
-        </div>
-        <button mat-raised-button color="primary" routerLink="/movies" class="offer-card__cta">Book Group</button>
+        <p>Book 4 or more seats in one order and save 20% on the whole booking — no code needed.</p>
+        <a mat-raised-button color="primary" routerLink="/tickets" class="offer-card__cta">Book for Your Group</a>
       </div>
     </div>
 
     <div class="offer-card">
-      <div class="offer-card__badge">NEW</div>
+      <div class="offer-card__badge">SAVE 10%</div>
       <div class="offer-card__content">
         <h3>Weekend Special</h3>
-        <p>Friday & Saturday evening screenings at premium venues</p>
-        <div class="offer-card__price">
-          <span class="offer-card__original">From $14.99</span>
-          <span class="offer-card__discounted">See Screenings</span>
-        </div>
-        <button mat-raised-button color="primary" routerLink="/movies" class="offer-card__cta">Browse</button>
+        <p>Friday &amp; Saturday screenings from 6 PM get an automatic 10% discount.</p>
+        <a mat-raised-button color="primary" routerLink="/tickets" class="offer-card__cta">See Weekend Screenings</a>
       </div>
     </div>
   </div>

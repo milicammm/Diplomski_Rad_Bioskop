@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { Observable, tap, throwError } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/auth.models';
 
@@ -51,7 +51,29 @@ export class AuthService {
     return this.http.get<UserResponse>(`${API_BASE_URL}/api/users/me`);
   }
 
+  refreshAccessToken(): Observable<LoginResponse> {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.http.post<LoginResponse>(`${API_BASE_URL}/api/auth/refresh`, null, {
+      headers: { Authorization: `Bearer ${refreshToken}` }
+    }).pipe(
+      tap((response) => this.persistSession(response))
+    );
+  }
+
   logout() {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+
+    if (refreshToken) {
+      // Best-effort: revoke server-side even though we clear the local session regardless.
+      this.http.post(`${API_BASE_URL}/api/auth/logout`, null, {
+        headers: { Authorization: `Bearer ${refreshToken}` }
+      }).subscribe({ error: () => {} });
+    }
+
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

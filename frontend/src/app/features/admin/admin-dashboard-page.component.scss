@@ -54,6 +54,46 @@
         color: #93c5fd;
       }
 
+      .stat-card--accent {
+        border-color: rgba(96, 165, 250, 0.36);
+        background: linear-gradient(135deg, rgba(30, 64, 175, 0.72), rgba(15, 23, 42, 0.9));
+      }
+
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .analytics-tile {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 0.9rem;
+        background: rgba(15, 23, 42, 0.42);
+        display: grid;
+        gap: 0.3rem;
+      }
+
+      .analytics-tile--wide {
+        grid-column: 1 / -1;
+      }
+
+      .analytics-tile__label {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.72rem;
+        color: #93c5fd;
+      }
+
+      .analytics-tile strong {
+        color: #f8fafc;
+        font-size: 1.05rem;
+      }
+
+      .analytics-tile small {
+        color: #94a3b8;
+      }
+
       .stat-card strong {
         display: block;
         margin-top: 0.4rem;
@@ -286,28 +326,51 @@
       }
 
       :host ::ng-deep .mat-mdc-select-trigger {
-        color: #cbd5e1 !important;
+        color: #e2e8f0 !important;
       }
 
       :host ::ng-deep .mdc-select__anchor {
-        background-color: rgba(30, 41, 59, 0.8) !important;
+        background-color: rgba(15, 23, 42, 0.82) !important;
       }
 
-      :host ::ng-deep .mat-mdc-option {
-        color: #cbd5e1 !important;
+      :host ::ng-deep .filter-field .mat-mdc-text-field-wrapper {
+        background: rgba(15, 23, 42, 0.82) !important;
+        border-radius: 16px !important;
       }
 
-      :host ::ng-deep .mat-mdc-option:hover {
-        background-color: rgba(60, 120, 216, 0.2) !important;
+      :host ::ng-deep .filter-field .mdc-notched-outline__leading,
+      :host ::ng-deep .filter-field .mdc-notched-outline__notch,
+      :host ::ng-deep .filter-field .mdc-notched-outline__trailing {
+        border-color: rgba(148, 163, 184, 0.35) !important;
       }
 
-      :host ::ng-deep .mat-mdc-option.mdc-list-item--selected {
-        background-color: rgba(60, 120, 216, 0.3) !important;
-        color: #60a5fa !important;
+      :host ::ng-deep .filter-field .mat-mdc-form-field-label,
+      :host ::ng-deep .filter-field .mat-mdc-select-value,
+      :host ::ng-deep .filter-field .mat-mdc-input-element,
+      :host ::ng-deep .filter-field .mat-mdc-select-arrow,
+      :host ::ng-deep .filter-field .mat-icon {
+        color: #e2e8f0 !important;
       }
 
-      :host ::ng-deep .mdc-select__menu .mdc-list {
-        background-color: rgba(20, 30, 50, 0.95) !important;
+      :host ::ng-deep .movies-filter-panel.mat-mdc-select-panel {
+        background: rgba(15, 23, 42, 0.98) !important;
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(148, 163, 184, 0.22) !important;
+        border-radius: 16px !important;
+        backdrop-filter: blur(20px) !important;
+      }
+
+      :host ::ng-deep .movies-filter-panel.mat-mdc-select-panel .mat-mdc-option {
+        color: #e2e8f0 !important;
+      }
+
+      :host ::ng-deep .movies-filter-panel.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected,
+      :host ::ng-deep .movies-filter-panel.mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+        background: rgba(59, 130, 246, 0.18) !important;
+      }
+
+      :host ::ng-deep .movies-filter-panel.mat-mdc-select-panel .mdc-list-item__primary-text {
+        color: #e2e8f0 !important;
       }
 
       .state-card {
@@ -329,7 +392,8 @@
 
       @media (max-width: 1100px) {
         .stats-grid,
-        .section-grid {
+        .section-grid,
+        .analytics-grid {
           grid-template-columns: 1fr;
         }
 
@@ -340,7 +404,8 @@
 
       @media (max-width: 700px) {
         .stats-grid,
-        .form-grid {
+        .form-grid,
+        .analytics-grid {
           grid-template-columns: 1fr;
         }
 

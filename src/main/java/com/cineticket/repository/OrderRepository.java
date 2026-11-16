@@ -46,6 +46,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.status= 'PENDING' AND o.orderDate < :expirationTime")
     List<Order> findExpiredPendingOrders(@Param("expirationTime") LocalDateTime expirationTime);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM Order o WHERE o.id = :id")
     Optional<Order> findByIdForUpdate(@Param("id") Long id);
 }

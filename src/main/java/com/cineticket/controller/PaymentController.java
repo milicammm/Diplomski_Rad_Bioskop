@@ -30,6 +30,7 @@ public class PaymentController {
 
     //POST /api/payments/checkout-session/{orderId}
     @PostMapping("/api/payments/checkout-session/{orderId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<StripeCheckoutResponse> createCheckoutSession(@PathVariable Long orderId) {
         log.warn("=== CHECKOUT SESSION REQUEST ===");
         log.warn("Order ID: {}", orderId);
@@ -46,7 +47,11 @@ public class PaymentController {
         log.warn("=== WEBHOOK ENDPOINT CALLED ===");
         log.warn("Payload length: {}", payload.length());
         log.warn("Stripe-Signature header: {}", stripeSignature);
-        paymentService.handleStripeWebhook(payload, stripeSignature);
+        try {
+            paymentService.handleStripeWebhook(payload, stripeSignature);
+        } catch (Exception ex) {
+            log.error("Stripe webhook processing failed", ex);
+        }
         return ResponseEntity.ok("Webhook processed");
     }
 

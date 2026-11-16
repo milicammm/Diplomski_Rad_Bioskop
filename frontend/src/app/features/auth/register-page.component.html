@@ -25,8 +25,8 @@
         <mat-card appearance="outlined" class="auth-card">
           <div class="auth-header">
             <span class="eyebrow">CineTicket</span>
-            <h1>Create account</h1>
-            <p>Create an account to purchase tickets and manage your reservations.</p>
+            <h1>Create a new account</h1>
+            <p>Create an account to continue with your ticket reservations.</p>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -53,7 +53,7 @@
                 @if (form.controls.email.invalid && form.controls.email.touched) {
                   <mat-error>
                     @if (form.controls.email.errors?.['required']) {
-                      Email is required.
+                      Email is required
                     } @else if (form.controls.email.errors?.['email']) {
                       Please enter a valid email.
                     }
@@ -66,7 +66,7 @@
                 <mat-icon matPrefix>badge</mat-icon>
                 <input matInput formControlName="firstName" autocomplete="given-name" />
                 @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
-                  <mat-error>First name is required.</mat-error>
+                  <mat-error>First name is required</mat-error>
                 }
               </mat-form-field>
 
@@ -75,7 +75,7 @@
                 <mat-icon matPrefix>badge</mat-icon>
                 <input matInput formControlName="lastName" autocomplete="family-name" />
                 @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
-                  <mat-error>Last name is required.</mat-error>
+                  <mat-error>Last name is required</mat-error>
                 }
               </mat-form-field>
 
@@ -118,13 +118,13 @@
               type="submit"
               class="register-btn"
               [disabled]="form.invalid || isSubmitting()">
-              @if (isSubmitting()) { Creating account... } @else { Register }
+              @if (isSubmitting()) { Signing up... } @else { Sign Up }
             </button>
           </form>
 
           <p class="auth-alt">
             Already have an account?
-            <a routerLink="/auth/login">Login</a>
+            <a routerLink="/auth/login">Sign In</a>
           </p>
         </mat-card>
       </div>

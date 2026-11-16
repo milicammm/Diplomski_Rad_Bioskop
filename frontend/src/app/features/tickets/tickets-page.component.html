@@ -3,7 +3,7 @@
       <header class="tickets-head">
         <div>
           <p class="tickets-head__eyebrow">Booking flow</p>
-          <h1>Choose a screening and reserve seats</h1>
+          <h1>Booking flow</h1>
           <p>Pick a movie, select a screening, choose seats and continue to checkout.</p>
         </div>
         <button mat-stroked-button type="button" (click)="refresh()" [disabled]="loadingMovies() || loadingScreenings() || loadingSeats()">
@@ -24,8 +24,23 @@
         <div class="tickets-panel__legend">
           <span><mat-icon>event</mat-icon> screening</span>
           <span><mat-icon>airline_seat_recline_normal</mat-icon> seat</span>
-          <span><mat-icon>payments</mat-icon> {{ estimatedTotal() | number: '1.2-2' }} USD</span>
+          @if (activeDeal(); as deal) {
+            <span class="tickets-panel__estimate">
+              <mat-icon>payments</mat-icon>
+              <span class="tickets-panel__was">{{ estimatedSubtotal() | number: '1.2-2' }} USD</span>
+              Estimated total: {{ estimatedTotal() | number: '1.2-2' }} USD
+            </span>
+          } @else {
+            <span><mat-icon>payments</mat-icon> Estimated total: {{ estimatedTotal() | number: '1.2-2' }} USD</span>
+          }
         </div>
+
+        @if (activeDeal(); as deal) {
+          <div class="deal-banner" role="status">
+            <mat-icon>local_offer</mat-icon>
+            <span>You qualify for the <strong>{{ deal.label }}</strong> — {{ deal.percentage }}% off, applied automatically at checkout.</span>
+          </div>
+        }
       </section>
 
       @if (loadingMovies()) {
@@ -144,32 +159,59 @@
             </div>
           </section>
 
-          <div class="seat-rows">
-            @for (row of groupedSeats(); track row.rowKey) {
-              <article class="seat-row">
-                <div class="seat-row__label">
-                  <strong>Row {{ row.rowLabel }}</strong>
-                  <span>{{ row.seats.length }} seats</span>
-                </div>
+          <div class="hall">
+            <div class="screen">SCREEN</div>
 
-                <div class="seat-row__grid">
-                  @for (seat of row.seats; track seat.id) {
-                    <button
-                      type="button"
-                      class="seat-chip"
-                      [class.seat-chip--selected]="isSeatSelected(seat.id)"
-                      [class.seat-chip--vip]="seat.type === 'VIP'"
-                      [class.seat-chip--reserved]="seat.reserved"
-                      [class.seat-chip--recommended]="recommendedSeatIds().has(seat.id)"
-                      [disabled]="seat.reserved"
-                      (click)="toggleSeat(seat.id)"
-                    >
-                      {{ seat.seatNumber }}
-                    </button>
-                  }
+            <div class="hall-rows">
+              @for (row of groupedSeats(); track row.rowKey) {
+                <div class="hall-row">
+                  <div class="hall-row__label">{{ row.rowLabel }}</div>
+                  <div class="hall-row__seats" role="list">
+                    <div class="seat-group">
+                      @for (seat of row.seatGroups[0]; track seat.id) {
+                        <button
+                          type="button"
+                          role="listitem"
+                          class="hall-seat seat-chip"
+                          [class.seat-chip--selected]="isSeatSelected(seat.id)"
+                          [class.seat-chip--vip]="seat.type === 'VIP'"
+                          [class.seat-chip--reserved]="seat.reserved"
+                          [class.seat-chip--recommended]="recommendedSeatIds().has(seat.id)"
+                          [attr.aria-label]="'Seat ' + row.rowLabel + seat.seatNumber"
+                          [disabled]="seat.reserved"
+                          (click)="toggleSeat(seat.id)"
+                        >
+                          <span class="hall-seat__label">{{ seat.seatNumber }}</span>
+                        </button>
+                      }
+                    </div>
+
+                    @if (row.seatGroups && row.seatGroups.length > 1 && row.seatGroups[1].length > 0) {
+                      <div class="aisle" aria-hidden="true"></div>
+
+                      <div class="seat-group">
+                        @for (seat of row.seatGroups[1]; track seat.id) {
+                          <button
+                            type="button"
+                            role="listitem"
+                            class="hall-seat seat-chip"
+                            [class.seat-chip--selected]="isSeatSelected(seat.id)"
+                            [class.seat-chip--vip]="seat.type === 'VIP'"
+                            [class.seat-chip--reserved]="seat.reserved"
+                            [class.seat-chip--recommended]="recommendedSeatIds().has(seat.id)"
+                            [attr.aria-label]="'Seat ' + row.rowLabel + seat.seatNumber"
+                            [disabled]="seat.reserved"
+                            (click)="toggleSeat(seat.id)"
+                          >
+                            <span class="hall-seat__label">{{ seat.seatNumber }}</span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
-              </article>
-            }
+              }
+            </div>
           </div>
         }
       </section>
@@ -178,6 +220,9 @@
         <div>
           <p class="cta-row__label">Selected seats</p>
           <strong>{{ selectedSeatIds().length }}</strong>
+          @if (selectedSeatLabels()) {
+            <p class="cta-row__seats">{{ selectedSeatLabels() }}</p>
+          }
         </div>
         <button
           mat-raised-button
@@ -236,6 +281,18 @@
                 <div>
                   <strong>{{ order.totalPrice | number: '1.2-2' }} USD</strong>
                   <p>{{ order.username }}</p>
+                </div>
+                <div>
+                  @if (order.status === 'PENDING') {
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      type="button"
+                      [disabled]="cancelingOrderId() === order.id"
+                      (click)="cancelOrder(order)">
+                      {{ cancelingOrderId() === order.id ? 'Cancelling…' : 'Cancel' }}
+                    </button>
+                  }
                 </div>
               </article>
             }

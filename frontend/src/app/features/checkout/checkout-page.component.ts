@@ -14,6 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { ScreeningResponse, SeatResponse } from '../../core/models/booking.models';
+import { evaluateDeal } from '../../core/services/deal-calculator';
 
 @Component({
   selector: 'app-checkout-page',
@@ -62,6 +63,13 @@ export class CheckoutPageComponent implements OnInit {
   protected readonly screeningPrice = computed(() => Number(this.screening()?.price ?? 0));
 
   protected readonly totalPrice = computed(() => this.screeningPrice() * this.selectedSeats().length);
+
+  protected readonly activeDeal = computed(() => evaluateDeal(this.selectedSeats(), this.screening()));
+
+  protected readonly discountedTotal = computed(() => {
+    const deal = this.activeDeal();
+    return deal ? this.totalPrice() * (100 - deal.percentage) / 100 : this.totalPrice();
+  });
 
   ngOnInit() {
     this.route.queryParamMap
@@ -134,8 +142,21 @@ export class CheckoutPageComponent implements OnInit {
           this.isRedirectingToPayment.set(true);
           window.location.href = checkout.url;
         },
-        error: () => {
-          this.snackBar.open('Payment initialization failed. Please check your data and try again.', 'Close', { duration: 3800 });
+        error: (error) => {
+          const rawMessage: string = error.error?.message ?? '';
+          let errorMessage = 'Payment initialization failed. Please check your data and try again.';
+
+          if (error.status === 409) {
+            errorMessage = 'One or more selected seats are no longer available. Please select different seats.';
+          } else if (error.status === 400 && rawMessage.includes('Insufficient')) {
+            errorMessage = 'Not enough seats available for this screening.';
+          } else if (error.status === 400 && rawMessage.includes('already')) {
+            errorMessage = 'Some seats are already reserved. Please select different ones.';
+          } else if (rawMessage) {
+            errorMessage = rawMessage;
+          }
+
+          this.snackBar.open(errorMessage, 'Close', { duration: 4000 });
           this.isSubmitting.set(false);
           this.isRedirectingToPayment.set(false);
         }
@@ -187,8 +208,18 @@ export class CheckoutPageComponent implements OnInit {
             this.errorMessage.set('Selected seats are no longer available. Please select new seats.');
           }
         },
-        error: () => {
-          this.errorMessage.set('Cannot load checkout data. Please try again.');
+        error: (error) => {
+          let errorMsg = 'Cannot load checkout data. Please try again.';
+
+          if (error.error?.message) {
+            errorMsg = error.error.message;
+          } else if (error.status === 404) {
+            errorMsg = 'Screening or seats not found. Please go back and select a new screening.';
+          } else if (error.status === 409) {
+            errorMsg = 'The seats you selected are no longer available. Please select different seats.';
+          }
+
+          this.errorMessage.set(errorMsg);
         },
         complete: () => {
           this.isLoading.set(false);

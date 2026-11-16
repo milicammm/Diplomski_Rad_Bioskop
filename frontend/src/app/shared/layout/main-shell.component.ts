@@ -8,11 +8,12 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-main-shell',
   imports: [
-    MatButtonModule, 
-    MatIconModule, 
-    MatToolbarModule, 
-    RouterLink, 
-    RouterOutlet],
+    MatButtonModule,
+    MatIconModule,
+    MatToolbarModule,
+    RouterLink,
+    RouterOutlet
+  ],
   templateUrl: './main-shell.component.html',
   styleUrls: ['./main-shell.component.scss'],
 

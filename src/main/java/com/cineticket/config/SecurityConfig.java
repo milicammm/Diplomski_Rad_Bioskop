@@ -1,6 +1,7 @@
 package com.cineticket.config;
 
 import com.cineticket.security.JwtAuthenticationFilter;
+import com.cineticket.security.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,10 +26,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, RateLimitFilter rateLimitFilter,
+                           UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.rateLimitFilter = rateLimitFilter;
         this.userDetailsService = userDetailsService;
     }
 
@@ -50,6 +54,7 @@ public class SecurityConfig {
                     "/api/movies/**",
                     "/api/screenings/**",
                     "/api/seats/**",
+                    "/api/recommendations/**",
                     "/swagger-ui/**",
                     "/v3/api-docs/**",
                     "/swagger-ui.html",
@@ -57,10 +62,6 @@ public class SecurityConfig {
                     "/stripe/webhook"
                 ).permitAll()
 
-                .requestMatchers(HttpMethod.GET, "/api/orders/user/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
-                
-                
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
                
@@ -74,10 +75,11 @@ public class SecurityConfig {
             
           
             .authenticationProvider(authenticationProvider())
-            
-           
+
+
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            
+            .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
+
             .build();
     }
 

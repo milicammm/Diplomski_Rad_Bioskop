@@ -12,9 +12,8 @@ import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MoviesService } from '../../core/services/movies.service';
 import { MovieResponse } from '../../core/models/movie.models';
-import { BookingService } from '../../core/services/booking.service';
+import { RecommendationService } from '../../core/services/recommendation.service';
 import { AuthService } from '../../core/services/auth.service';
-import { OrderResponse } from '../../core/models/booking.models';
 
 @Component({
   selector: 'app-movies-page',
@@ -36,14 +35,14 @@ import { OrderResponse } from '../../core/models/booking.models';
 })
 export class MoviesPageComponent implements OnInit {
   private readonly moviesService = inject(MoviesService);
-  private readonly bookingService = inject(BookingService);
+  private readonly recommendationService = inject(RecommendationService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loading = signal(true);
   protected readonly movies = signal<MovieResponse[]>([]);
-  protected readonly orders = signal<OrderResponse[]>([]);
+  protected readonly recommendedMovies = signal<MovieResponse[]>([]);
   protected readonly totalMovies = signal(0);
   protected readonly pageInfo = signal({ page: 0, size: 8, totalPages: 0 });
 
@@ -70,7 +69,7 @@ export class MoviesPageComponent implements OnInit {
 
     const start = info.page * info.size + 1;
     const end = Math.min(start + info.size - 1, total);
-    return 'Showing ' + start + '-' + end + ' of ' + total;
+    return `Showing ${start}-${end} of ${total}`;
   });
 
   protected readonly availableGenres = computed(() => {
@@ -81,71 +80,12 @@ export class MoviesPageComponent implements OnInit {
     return [...new Set(genres)].sort((left, right) => left.localeCompare(right));
   });
 
-  protected readonly recommendedMovies = computed(() => {
-    const profile = this.userPreferenceProfile();
-    if (!profile) {
-      return [];
-    }
-
-    return [...this.movies()]
-      .filter((movie) => movie.active)
-      .filter((movie) => !profile.watchedTitles.has(movie.title.toLowerCase()))
-      .sort((left, right) => this.scoreMovie(right, profile) - this.scoreMovie(left, profile))
-      .slice(0, 6);
-  });
-
   protected readonly recommendationHint = computed(() => {
-    const profile = this.userPreferenceProfile();
-    if (!profile) {
-      return '';
-    }
-
-    return 'Based on your booked genres and languages.';
-  });
-
-  private readonly userPreferenceProfile = computed(() => {
-    const orders = this.orders().filter((order) => order.status === 'CONFIRMED' || order.status === 'PENDING');
-    if (orders.length === 0) {
-      return null;
-    }
-
-    const watchedTitles = new Set<string>();
-    const genreCounts = new Map<string, number>();
-    const languageCounts = new Map<string, number>();
-
-    for (const order of orders) {
-      for (const item of order.orderItems) {
-        const title = (item.movieTitle || '').trim().toLowerCase();
-        if (!title) {
-          continue;
-        }
-
-        watchedTitles.add(title);
-        const movie = this.movies().find((entry) => entry.title.trim().toLowerCase() === title);
-        if (!movie) {
-          continue;
-        }
-
-        for (const tag of this.normalizeTags(movie.genre)) {
-          genreCounts.set(tag.toLowerCase(), (genreCounts.get(tag.toLowerCase()) || 0) + 1);
-        }
-
-        const language = (movie.language || '').trim().toLowerCase();
-        if (language) {
-          languageCounts.set(language, (languageCounts.get(language) || 0) + 1);
-        }
-      }
-    }
-
-    if (genreCounts.size === 0 && languageCounts.size === 0) {
-      return null;
-    }
-
-    return { watchedTitles, genreCounts, languageCounts };
+    return this.recommendedMovies().length > 0 ? 'Based on your booked genres, directors and cast.' : '';
   });
 
   ngOnInit() {
-    this.loadUserOrders();
+    this.loadRecommendations();
     this.loadMovies();
   }
 
@@ -153,7 +93,7 @@ export class MoviesPageComponent implements OnInit {
     this.movies.set([]);
     this.filteredMovies.set([]);
     this.loading.set(true);
-    this.loadUserOrders();
+    this.loadRecommendations();
     this.loadMovies();
   }
 
@@ -182,7 +122,7 @@ export class MoviesPageComponent implements OnInit {
   }
 
   protected movieBadge(movie: MovieResponse) {
-    return movie.active ? 'Now showing' : 'Coming soon';
+    return movie.active ? 'Now Showing' : 'Upcoming';
   }
 
   protected posterUrl(movie: MovieResponse) {
@@ -299,50 +239,18 @@ export class MoviesPageComponent implements OnInit {
       .filter(Boolean);
   }
 
-  private scoreMovie(
-    movie: MovieResponse,
-    profile: {
-      watchedTitles: Set<string>;
-      genreCounts: Map<string, number>;
-      languageCounts: Map<string, number>;
-    }
-  ) {
-    let score = 0;
-
-    for (const genre of this.normalizeTags(movie.genre)) {
-      score += (profile.genreCounts.get(genre.toLowerCase()) || 0) * 10;
-    }
-
-    const language = (movie.language || '').trim().toLowerCase();
-    if (language) {
-      score += (profile.languageCounts.get(language) || 0) * 6;
-    }
-
-    score += Math.min(movie.soldTickets || 0, 500) * 0.01;
-
-    if (movie.releaseDate) {
-      const releaseTimestamp = new Date(movie.releaseDate).getTime();
-      if (Number.isFinite(releaseTimestamp)) {
-        const ageInDays = Math.max(0, (Date.now() - releaseTimestamp) / (1000 * 60 * 60 * 24));
-        score += Math.max(0, 50 - ageInDays * 0.03);
-      }
-    }
-
-    return score;
-  }
-
-  private loadUserOrders() {
+  private loadRecommendations() {
     const user = this.authService.currentUser();
     if (!user) {
-      this.orders.set([]);
+      this.recommendedMovies.set([]);
       return;
     }
 
-    this.bookingService.getOrdersByUserId(user.id)
+    this.recommendationService.getRecommendedMovies(user.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (orders) => this.orders.set(orders),
-        error: () => this.orders.set([])
+        next: (movies) => this.recommendedMovies.set(movies),
+        error: () => this.recommendedMovies.set([])
       });
   }
 }

@@ -11,7 +11,6 @@ import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-register-page',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -54,11 +53,19 @@ export class RegisterPageComponent {
 
     this.authService.register(this.form.getRawValue()).subscribe({
       next: () => {
-        this.snackBar.open('The account has been created. Log in.', 'Okay', { duration: 3000 });
+        this.snackBar.open('Registration successful! Please login.', 'OK', { duration: 3000 });
         this.router.navigate(['/auth/login']);
       },
-      error: () => {
-        this.snackBar.open('Registration failed. Please check your details.', 'Close', { duration: 3500 });
+      error: (error) => {
+        let errorMessage = 'Registration failed. Please check your details.';
+
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 409) {
+          errorMessage = 'User already exists';
+        }
+
+        this.snackBar.open(errorMessage, 'Close', { duration: 4000 });
         this.isSubmitting.set(false);
       },
       complete: () => {

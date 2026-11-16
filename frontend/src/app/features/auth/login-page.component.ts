@@ -11,7 +11,6 @@ import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login-page',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -49,11 +48,21 @@ export class LoginPageComponent {
     this.isSubmitting.set(true);
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
-        this.snackBar.open('Login successful.', 'Okay', { duration: 3000 });
+        this.snackBar.open('Login successful!', 'OK', { duration: 3000 });
         this.router.navigate(['/']);
       },
-      error: () => {
-        this.snackBar.open('Login failed. Please check your details.', 'Close', { duration: 3500 });
+      error: (error) => {
+        let errorMessage = 'Login failed. Please check your details.';
+
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 401) {
+          errorMessage = 'Invalid username or password';
+        } else if (error.status === 0) {
+          errorMessage = 'Network error. Please check your connection.';
+        }
+
+        this.snackBar.open(errorMessage, 'Close', { duration: 4000 });
         this.isSubmitting.set(false);
       },
       complete: () => {

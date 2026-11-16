@@ -7,9 +7,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
+import { TicketService } from '../../core/services/ticket.service';
 import { OrderResponse } from '../../core/models/booking.models';
 import { EditProfileDialogComponent } from './edit-profile-dialog.component';
 
@@ -23,6 +26,8 @@ import { EditProfileDialogComponent } from './edit-profile-dialog.component';
     MatChipsModule,
     MatDividerModule,
     MatIconModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
     DatePipe,
     CurrencyPipe
   ],
@@ -34,13 +39,16 @@ import { EditProfileDialogComponent } from './edit-profile-dialog.component';
 export class ProfilePageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly bookingService = inject(BookingService);
+  private readonly ticketService = inject(TicketService);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly currentUser = this.authService.currentUser;
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly orders = signal<OrderResponse[]>([]);
+  protected readonly downloadingTicketId = signal<number | null>(null);
 
   protected readonly orderCount = computed(() => this.orders().length);
   protected readonly totalTickets = computed(() =>
@@ -79,7 +87,7 @@ export class ProfilePageComponent implements OnInit {
         },
         error: () => {
           this.orders.set([]);
-          this.errorMessage.set('Ticket history is temporarily unavailable. Please try again later.');
+          this.errorMessage.set('Server error. Please try again later.');
           this.loading.set(false);
         }
       });
@@ -100,5 +108,58 @@ openEditDialog() {
       this.loadProfileData();
     }
   });
+}
+
+protected downloadTicket(orderId: number) {
+  this.downloadingTicketId.set(orderId);
+  
+  this.ticketService.downloadTicket(orderId)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: (blob: Blob) => {
+        this.ticketService.triggerDownload(blob, `ticket-${orderId}.pdf`);
+        this.snackBar.open('Your confirmation PDF has been downloaded.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'bottom',
+          panelClass: ['snackbar-success']
+        });
+      },
+      error: () => {
+        this.snackBar.open('We could not download your confirmation PDF right now.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'bottom',
+          panelClass: ['snackbar-error']
+        });
+        this.downloadingTicketId.set(null);
+      },
+      complete: () => {
+        this.downloadingTicketId.set(null);
+      }
+    });
+}
+
+protected resendTicketEmail(orderId: number) {
+  this.ticketService.resendTicketEmail(orderId)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: () => {
+        this.snackBar.open('A copy of your ticket has been sent to your email.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'bottom',
+          panelClass: ['snackbar-success']
+        });
+      },
+      error: () => {
+        this.snackBar.open('We could not resend your ticket email right now.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'bottom',
+          panelClass: ['snackbar-error']
+        });
+      }
+    });
 }
 }

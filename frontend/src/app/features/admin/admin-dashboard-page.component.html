@@ -30,6 +30,12 @@
             <small>catalog entries</small>
           </mat-card>
 
+          <mat-card appearance="outlined" class="stat-card stat-card--accent">
+            <p>Revenue</p>
+            <strong>{{ analytics().totalRevenue | number: '1.2-2' }} USD</strong>
+            <small>{{ analytics().confirmedOrders }} confirmed orders</small>
+          </mat-card>
+
           <mat-card appearance="outlined" class="stat-card">
             <p>Halls</p>
             <strong>{{ halls().length }}</strong>
@@ -58,6 +64,45 @@
             <p>Users</p>
             <strong>{{ users().length }}</strong>
             <small>registered accounts</small>
+          </mat-card>
+        </section>
+
+        <section class="section-grid">
+          <mat-card appearance="outlined" class="panel panel--wide">
+            <div class="panel__head">
+              <div>
+                <p class="panel__eyebrow">Business intelligence</p>
+                <h2>Performance snapshot</h2>
+              </div>
+            </div>
+
+            <div class="analytics-grid">
+              <article class="analytics-tile">
+                <span class="analytics-tile__label">Tickets sold</span>
+                <strong>{{ analytics().ticketsSold }}</strong>
+                <small>Confirmed purchases</small>
+              </article>
+              <article class="analytics-tile">
+                <span class="analytics-tile__label">Avg. ticket price</span>
+                <strong>{{ analytics().averageTicketPrice | number: '1.2-2' }} USD</strong>
+                <small>Revenue per seat sold</small>
+              </article>
+              <article class="analytics-tile">
+                <span class="analytics-tile__label">Occupancy</span>
+                <strong>{{ analytics().occupancyRate }}%</strong>
+                <small>Current screening fill rate</small>
+              </article>
+              <article class="analytics-tile">
+                <span class="analytics-tile__label">Top movie</span>
+                <strong>{{ analytics().topMovieTitle }}</strong>
+                <small>Based on sold seats</small>
+              </article>
+              <article class="analytics-tile analytics-tile--wide">
+                <span class="analytics-tile__label">Best screening</span>
+                <strong>{{ analytics().bestScreeningTitle }}</strong>
+                <small>Highest demand projection</small>
+              </article>
+            </div>
           </mat-card>
         </section>
 
@@ -124,9 +169,9 @@
                 <input matInput formControlName="cast" />
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Status</mat-label>
-                <mat-select formControlName="active">
+                <mat-select formControlName="active" panelClass="movies-filter-panel">
                   <mat-option [value]="true">Active</mat-option>
                   <mat-option [value]="false">Inactive</mat-option>
                 </mat-select>
@@ -244,7 +289,7 @@
             <form class="form-grid" [formGroup]="seatForm" (ngSubmit)="submitSeat()" novalidate>
               <mat-form-field appearance="outline">
                 <mat-label>Hall</mat-label>
-                <mat-select formControlName="hallId">
+                <mat-select formControlName="hallId" panelClass="movies-filter-panel">
                   @if (halls().length === 0) {
                     <mat-option [value]="0" disabled>Nema dostupnih sala</mat-option>
                   }
@@ -266,7 +311,7 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>Type</mat-label>
-                <mat-select formControlName="type">
+                <mat-select formControlName="type" panelClass="movies-filter-panel">
                   <mat-option value="REGULAR">Regular</mat-option>
                   <mat-option value="VIP">VIP</mat-option>
                 </mat-select>
@@ -293,7 +338,7 @@
               </div>
               <mat-form-field appearance="outline" class="compact-select">
                 <mat-label>Filter hall</mat-label>
-                <mat-select [value]="seatHallFilter()" (selectionChange)="seatHallFilter.set($event.value)">
+                <mat-select [value]="seatHallFilter()" (selectionChange)="seatHallFilter.set($event.value)" panelClass="movies-filter-panel">
                   <mat-option [value]="null">All halls</mat-option>
                   @for (hall of halls(); track hall.id) {
                     <mat-option [value]="hall.id">{{ hall.name }}</mat-option>
@@ -333,7 +378,7 @@
             <form class="form-grid" [formGroup]="screeningForm" (ngSubmit)="submitScreening()" novalidate>
               <mat-form-field appearance="outline">
                 <mat-label>Movie</mat-label>
-                <mat-select formControlName="movieId">
+                <mat-select formControlName="movieId" panelClass="movies-filter-panel">
                   @if (movies().length === 0) {
                     <mat-option [value]="0" disabled>Nema dostupnih filmova</mat-option>
                   }
@@ -345,7 +390,7 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>Hall</mat-label>
-                <mat-select formControlName="hallId">
+                <mat-select formControlName="hallId" panelClass="movies-filter-panel">
                   @if (halls().length === 0) {
                     <mat-option [value]="0" disabled>Nema dostupnih sala</mat-option>
                   }
@@ -370,9 +415,9 @@
                 <input matInput type="number" formControlName="price" />
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Status</mat-label>
-                <mat-select formControlName="active">
+                <mat-select formControlName="active" panelClass="movies-filter-panel">
                   <mat-option [value]="true">Active</mat-option>
                   <mat-option [value]="false">Inactive</mat-option>
                 </mat-select>
@@ -480,9 +525,8 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-select placeholder="Role" formControlName="role">
+                <mat-select placeholder="Role" formControlName="role" panelClass="movies-filter-panel">
                   <mat-option value="CUSTOMER">Customer</mat-option>
-                  <mat-option value="ADMIN">Admin</mat-option>
                 </mat-select>
               </mat-form-field>
 
@@ -544,7 +588,6 @@
                     <div>
                       <strong>#{{ transaction.orderId }} · {{ transaction.customerUsername }}</strong>
                       <p>{{ transaction.customerEmail }}</p>
-                      <p>Intent: {{ transaction.paymentIntentId }}</p>
                       <p>
                         @for (item of transaction.purchasedItems; track item.productName + item.quantity + item.unitPrice) {
                           <span class="transaction-item">
@@ -558,13 +601,17 @@
                       <p>{{ transaction.paymentStatus }}</p>
                       <p>{{ formatOrderDate(transaction.paidAt || '') }}</p>
                       <div class="status-actions">
-                        <button mat-stroked-button type="button" (click)="updatePaymentStatus(transaction.paymentId, 'SUCCEEDED')" 
+                        <button mat-stroked-button type="button" (click)="updatePaymentStatus(transaction.paymentId, 'SUCCEEDED')"
                                 [disabled]="paymentStatusUpdating() === transaction.paymentId">
                           Succeed
                         </button>
                         <button mat-stroked-button type="button" (click)="updatePaymentStatus(transaction.paymentId, 'FAILED')"
                                 [disabled]="paymentStatusUpdating() === transaction.paymentId">
                           Fail
+                        </button>
+                        <button mat-stroked-button color="warn" type="button" (click)="deletePaymentRecord(transaction.paymentId)"
+                                [disabled]="paymentDeleting() === transaction.paymentId">
+                          {{ paymentDeleting() === transaction.paymentId ? 'Deleting…' : 'Delete' }}
                         </button>
                       </div>
                     </div>

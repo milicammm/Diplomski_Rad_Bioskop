@@ -11,11 +11,13 @@ import com.cineticket.exception.SeatAlreadyReservedException;
 import com.cineticket.repository.*;
 import com.cineticket.service.OrderService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,16 +31,21 @@ public class OrderServiceImpl implements OrderService {
     private final ScreeningRepository screeningRepository;
     private final SeatRepository seatRepository;
     private final ModelMapper modelMapper;
+    private final DealCalculator dealCalculator;
+
+    @Value("${app.order.reservation-minutes:15}")
+    private int reservationMinutes;
 
     public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
                             UserRepository userRepository, ScreeningRepository screeningRepository,
-                            SeatRepository seatRepository, ModelMapper modelMapper) {
+                            SeatRepository seatRepository, ModelMapper modelMapper, DealCalculator dealCalculator) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.userRepository = userRepository;
         this.screeningRepository = screeningRepository;
         this.seatRepository = seatRepository;
         this.modelMapper = modelMapper;
+        this.dealCalculator = dealCalculator;
     }
 
     @SuppressWarnings("null")
@@ -93,8 +100,10 @@ public class OrderServiceImpl implements OrderService {
             order.addOrderItem(orderItem);
         }
 
+        applyDeal(order);
+
         Order savedOrder = orderRepository.save(order);
-        
+
         return mapToResponse(savedOrder);
     }
 
@@ -146,6 +155,22 @@ public class OrderServiceImpl implements OrderService {
         updateOrderStatus(id, Order.OrderStatus.CANCELLED);
     }
 
+    @Override
+    public void expireStalePendingOrders() {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(reservationMinutes);
+
+        for (Order order : orderRepository.findExpiredPendingOrders(cutoff)) {
+            for (OrderItem item : order.getOrderItems()) {
+                Screening screening = item.getScreening();
+                screening.setAvailableSeats(screening.getAvailableSeats() + item.getQuantity());
+                screeningRepository.save(screening);
+            }
+
+            order.setStatus(Order.OrderStatus.EXPIRED);
+            orderRepository.save(order);
+        }
+    }
+
     @SuppressWarnings("null")
     @Override
     @Transactional(readOnly = true)
@@ -159,6 +184,34 @@ public class OrderServiceImpl implements OrderService {
     public Order findOrderByPaymentIntentId(String paymentIntentId) {
         return orderRepository.findByPaymentIntentId(paymentIntentId)
             .orElseThrow(() -> new ResourceNotFoundException("Order", "paymentIntentId", paymentIntentId));
+    }
+
+    /**
+     * Applies the best-matching "Exclusive Deals" promotion (see DealCalculator) to an order
+     * that has just had all its items added at full screening price. Non-stacking: only the
+     * single highest-percentage applicable rule is used.
+     */
+    private void applyDeal(Order order) {
+        DealCalculator.DiscountResult discount = dealCalculator.evaluate(order.getOrderItems());
+        if (discount == null) {
+            return;
+        }
+
+        BigDecimal multiplier = BigDecimal.valueOf(100 - discount.percentage())
+            .divide(BigDecimal.valueOf(100));
+
+        BigDecimal originalTotal = BigDecimal.ZERO;
+        for (OrderItem item : order.getOrderItems()) {
+            BigDecimal originalPrice = item.getPrice();
+            item.setOriginalPrice(originalPrice);
+            item.setPrice(originalPrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
+            originalTotal = originalTotal.add(originalPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+
+        order.setOriginalTotalPrice(originalTotal);
+        order.setDiscountPercentage(discount.percentage());
+        order.setDiscountLabel(discount.label());
+        order.calculateTotalPrice();
     }
 
     private OrderResponse mapToResponse(Order order) {
@@ -189,6 +242,7 @@ public class OrderServiceImpl implements OrderService {
         response.setSeatInfo(item.getSeat().getRowNumber() + "-" + item.getSeat().getSeatNumber());
         response.setQuantity(item.getQuantity());
         response.setPrice(item.getPrice());
+        response.setOriginalPrice(item.getOriginalPrice());
         response.setSubtotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
         
         return response;

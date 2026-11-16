@@ -57,6 +57,7 @@ export interface OrderItemResponse {
   seatInfo: string;
   quantity: number;
   price: number;
+  originalPrice?: number;
   subtotal: number;
 }
 
@@ -65,6 +66,9 @@ export interface OrderResponse {
   userId: number;
   username: string;
   totalPrice: number;
+  originalTotalPrice?: number;
+  discountPercentage?: number;
+  discountLabel?: string;
   orderDate: string;
   status: OrderStatus;
   paymentIntentId?: string;
